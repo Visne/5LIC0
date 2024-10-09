@@ -18,7 +18,7 @@
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
       <description>HelloWorld</description>
-      <source>[CONFIG_DIR]/hello-world/hello-world.c</source>
+      <source>[CONFIG_DIR]/motes/hello-world/hello-world.c</source>
       <commands>$(MAKE) -j$(CPUS) hello-world.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
