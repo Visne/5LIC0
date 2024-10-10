@@ -37,17 +37,27 @@
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
-uint8_t wrapper_function(void);
+extern uint8_t add_sender_endpoint(const char* id);
+extern uint8_t add_receiver_endpoint(const char* id);
+extern uint8_t send_data(const char* senderId, const char* data);
+extern uint8_t receive_data(const char* receiverId, char* data);
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
 AUTOSTART_PROCESSES(&node_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_process, ev, data)
 {
-  PROCESS_BEGIN();
+    PROCESS_BEGIN();
 
-  printf("C++ code returns: %u\n", wrapper_function());
+    add_sender_endpoint("sender1");
+    add_receiver_endpoint("receiver1");
 
-  PROCESS_END();
+    send_data("sender1", "Test message");
+    
+    char buffer[256];
+    receive_data("receiver1", buffer);
+    printf("Received data: %s\n", buffer);
+
+    PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
