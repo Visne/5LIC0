@@ -28,7 +28,7 @@ public:
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
     int simulateCANBus();
     /* Schedules a CAN message to be sent in time_until s*/
-    void enqueueCANMessage(int time_until, CANFDmessage_t msg);
+    void enqueueCANMessage(int time_until, CANFDmessage msg);
 };
 
 #endif // VIRTUALCANBUS_HPP

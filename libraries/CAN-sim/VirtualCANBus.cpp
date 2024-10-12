@@ -70,7 +70,14 @@ bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t))
 {
     if (nodes_.find(id) == nodes_.end())
     {
-        nodes_[id] = new TagNode(id, scan_cb);
+        // Create and insert new node
+        TagNode* new_node = new TagNode(id, scan_cb);
+        nodes_[id] = new_node;
+
+        // Set it to start generating scans
+        CANFDmessage msg;
+        int t_next = new_node->GetNextSendTime(&msg);
+        enqueueCANMessage(t_next, msg);        
         return true;
     }
     return false;

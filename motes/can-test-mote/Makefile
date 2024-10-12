@@ -1,4 +1,4 @@
-PROJECT_SOURCEFILES += ../../libraries/CAN-sim/VirtualCANBus.cpp ../../libraries/CAN-sim/VirtualCANBusWrapper.cpp
+PROJECT_SOURCEFILES += ../../libraries/CAN-sim/VirtualCANBus.cpp ../../libraries/CAN-sim/VirtualCANBusWrapper.cpp ../../libraries/CAN-sim/TagNode.cpp
 
 # Add C++ compilation flags
 CXXFLAGS += -std=c++11

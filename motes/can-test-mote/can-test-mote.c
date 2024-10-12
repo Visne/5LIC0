@@ -37,46 +37,65 @@
 #include <stdio.h>
 #include "sys/etimer.h"
 
+typedef struct product_info_msg
+{
+  /// Price of the product in cents
+  unsigned short price;
+  char *product_name;
+  unsigned short product_name_len;
+} product_info_msg_t;
+
+typedef struct scan_data_msg
+{
+  unsigned long customer_id;
+  unsigned long long product_id;
+} scan_data_msg_t;
+
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
-extern uint8_t add_sender_endpoint(const char* id);
-extern uint8_t add_receiver_endpoint(const char* id);
-extern uint8_t send_data(const char* senderId, const char* data);
-extern uint8_t receive_data(const char* receiverId, char* data);
+extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t));
+extern uint8_t remove_node(uint64_t  id);
+extern uint8_t send_data(uint64_t  senderId, const char *data);
+extern uint8_t receive_data(uint64_t receiverId, char *data);
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
 AUTOSTART_PROCESSES(&node_process);
-    
-  static struct etimer et;
-  static struct etimer timer;
+
+static struct etimer et;
+static struct etimer timer;
+
+void scan_callback(scan_data_msg_t data) {
+    unsigned long customer_id = data.customer_id;
+    unsigned long long product_id = data.product_id;
+    printf("Data: %ld, %lld\n", customer_id, product_id);
+}
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_process, ev, data)
 {
-    PROCESS_BEGIN();
+  PROCESS_BEGIN();
 
-    add_sender_endpoint("sender1");
-    add_receiver_endpoint("receiver1");
+  for (int i = 0; i < 6; i++) {
+    add_node(i, &scan_callback);
+  }
+  
 
-    send_data("sender1", "Test message");
-    
-    char buffer[256];
-    receive_data("receiver1", buffer);
-    printf("Received data: %s\n", buffer);
+  // char buffer[256];
 
-    /* Delay 1 second */
-    etimer_set(&et, 5 * CLOCK_SECOND);
-    etimer_set(&timer, 12 * CLOCK_SECOND);
+  // printf("Received data: %s\n", buffer);
 
-    /* Run CAN bus, sleeping when inactive */
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    /* Reset the etimer to trig again in 1 second */
-    printf("First timer!\n");
+  /* Delay 1 second */
+  etimer_set(&et, 5 * CLOCK_SECOND);
+  etimer_set(&timer, 12 * CLOCK_SECOND);
 
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
-    printf("Second timer\n");
+  /* Run CAN bus, sleeping when inactive */
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+  /* Reset the etimer to trig again in 1 second */
+  printf("First timer!\n");
 
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+  printf("Second timer\n");
 
-    PROCESS_END();
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

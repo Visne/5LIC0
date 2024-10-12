@@ -5,27 +5,45 @@
 #include <string.h>
 #include "types.h"
 #include <random>
+#include <memory>
+#include <stdexcept>
 
-class TagNode {
-    private:
-
-    uint64_t id_;           // MAC address
+class TagNode
+{
+private:
+    uint64_t id_;            // MAC address
     product_info_t product_; // Product currently being displayed
-        
-    // Function callback pointers for commands
-    void (*scan_cb_) (scan_data_msg_t);
 
-    public:
-    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t)) {
+    // Function callback pointers for commands
+    void (*scan_cb_)(scan_data_msg_t);
+
+    // Basic logging functionality as std::format did not work (C++11)
+    // Taken from stackoverflow: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+    template <typename... Args>
+    void log(const std::string &format, Args... args)
+    {
+        int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+        if (size_s <= 0)
+        {
+            return;
+        }
+        auto size = static_cast<size_t>(size_s);
+        std::unique_ptr<char[]> buf(new char[size]);
+        std::snprintf(buf.get(), size, format.c_str(), args...);
+        printf("[NODE %ld]: %s\n", id_, std::string(buf.get(), buf.get() + size - 1).c_str());
+    }
+
+public:
+    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t))
+    {
         id_ = id;
         product_ = {
-            0, 0, "UNDEFINED"
-        };
+            0, 0, "UNDEFINED"};
         scan_cb_ = scanCb;
     }
 
-    ~TagNode() {
-
+    ~TagNode()
+    {
     }
 
     /* Assign product ID to node, used to fetch and update product information */
@@ -41,7 +59,7 @@ class TagNode {
     scan_data_msg_t GenerateScan();
 
     /* Return time in s at which next tag scan will take place, populates fields of msg to have correct info on message*/
-    int GetNextSendTime(CANFDmessage_t* msg);
+    int GetNextSendTime(CANFDmessage_t *msg);
 
     void ProcessCommand(CANFDmessage_t msg);
 };
