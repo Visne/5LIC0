@@ -1,2 +1,2 @@
-include ../Makefile.path
+include ../../Makefile.path
 include $(CONTIKI)/Makefile.include
