@@ -8,7 +8,7 @@ extern "C" {
     #include "contiki.h"
 }
 
-VirtualCANBus bus;
+static VirtualCANBus bus;
 
 // void scanCallBack(scan_data_msg_t data) {
 //     unsigned long customer_id = data.customer_id;
@@ -25,16 +25,8 @@ extern "C" uint8_t remove_node(uint64_t id) {
     return bus.removeNode(id) ? 1 : 0;
 }
 
-extern "C" uint8_t send_data(const char* data) {
-    return bus.sendData(data) ? 1 : 0;
+extern "C" uint8_t simulate_can_bus() {
+    return bus.simulateCANBus();
 }
 
-extern "C" uint8_t receive_data(char* data) {
-    std::string strData;
-    if (bus.receiveData(strData)) {
-        strcpy(data, strData.c_str());
-        return 1;
-    }
-    return 0;
-}
 #endif

@@ -34,7 +34,7 @@ int TagNode::GetNextSendTime(CANFDmessage_t* msg)
 {
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(1, 10);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(1, 50);
 
     msg->command = PRODUCT_SCAN;
     msg->to = id_; // TODO: implement cluster head instead

@@ -18,6 +18,22 @@ private:
 
     std::list<scheduled_bus_activity_t> bus_queue_;
 
+    // Basic logging functionality as std::format did not work (C++11)
+    // Taken from stackoverflow: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+    template <typename... Args>
+    void log(const std::string &format, Args... args)
+    {
+        int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+        if (size_s <= 0)
+        {
+            return;
+        }
+        auto size = static_cast<size_t>(size_s);
+        std::unique_ptr<char[]> buf(new char[size]);
+        std::snprintf(buf.get(), size, format.c_str(), args...);
+        printf("[CANBUS]: %s\n", std::string(buf.get(), buf.get() + size - 1).c_str());
+    }
+
 public:
     bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t));
     bool removeNode(const uint64_t id);
