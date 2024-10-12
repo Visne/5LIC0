@@ -35,6 +35,8 @@
 
 #include "contiki.h"
 #include <stdio.h>
+#include "sys/etimer.h"
+
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
 extern uint8_t add_sender_endpoint(const char* id);
@@ -44,6 +46,10 @@ extern uint8_t receive_data(const char* receiverId, char* data);
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
 AUTOSTART_PROCESSES(&node_process);
+    
+  static struct etimer et;
+  static struct etimer timer;
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_process, ev, data)
 {
@@ -57,6 +63,19 @@ PROCESS_THREAD(node_process, ev, data)
     char buffer[256];
     receive_data("receiver1", buffer);
     printf("Received data: %s\n", buffer);
+
+    /* Delay 1 second */
+    etimer_set(&et, 5 * CLOCK_SECOND);
+    etimer_set(&timer, 12 * CLOCK_SECOND);
+
+    /* Run CAN bus, sleeping when inactive */
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    /* Reset the etimer to trig again in 1 second */
+    printf("First timer!\n");
+
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+    printf("Second timer\n");
+
 
     PROCESS_END();
 }

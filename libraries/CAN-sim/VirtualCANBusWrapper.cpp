@@ -2,7 +2,7 @@
 extern "C" {
     #include <stdint.h>
     #include <cstring>
-//    #include "contiki.h"
+    #include "contiki.h"
 }
 
 VirtualCANBus bus;
