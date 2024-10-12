@@ -2,32 +2,33 @@
 #define VIRTUALCANBUS_HPP
 
 #include <map>
+#include <list>
 #include <string>
-
-class SenderEndpoint;
-class ReceiverEndpoint;
+#include "TagNode.hpp"
 
 class VirtualCANBus {
 private:
-    std::map<std::string, SenderEndpoint*> senders;
-    std::map<std::string, ReceiverEndpoint*> receivers;
+    
+    typedef struct scheduled_bus_activity {
+        int time_until; // Time until this message should be sent
+        CANFDmessage_t msg;
+    } scheduled_bus_activity_t;
+
+    std::map<uint64_t, TagNode*> nodes_;
+
+    std::list<scheduled_bus_activity_t> bus_queue_;
 
 public:
-    bool addSenderEndpoint(const std::string& id);
-    bool addReceiverEndpoint(const std::string& id);
-    bool removeSenderEndpoint(const std::string& id);
-    bool removeReceiverEndpoint(const std::string& id);
+    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t));
+    bool removeNode(const uint64_t id);
 
-    bool sendData(const std::string& senderId, const std::string& data);
-    bool receiveData(const std::string& receiverId, std::string& data);
-};
+    bool sendData(const std::string& data);
+    bool receiveData(std::string& data);
 
-class SenderEndpoint {
-    // Logic for sender
-};
-
-class ReceiverEndpoint {
-    // Logic for receiver
+    /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
+    int simulateCANBus();
+    /* Schedules a CAN message to be sent in time_until s*/
+    void enqueueCANMessage(int time_until, CANFDmessage_t msg);
 };
 
 #endif // VIRTUALCANBUS_HPP

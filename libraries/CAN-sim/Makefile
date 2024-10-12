@@ -31,4 +31,4 @@ test_can: $(OBJECTS)
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJ_DIR)/*.o $(DEPS_DIR)/*.d
+	rm -f $(OBJ_DIR)/*.o $(DEPS_DIR)/*.d ./*.o ./*.d
