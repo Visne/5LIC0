@@ -18,7 +18,7 @@
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
       <description>Server</description>
-      <source>[CONFIG_DIR]/motes/6tisch-server/server.c</source>
+      <source>[CONFIG_DIR]/motes/server/server.c</source>
       <commands>$(MAKE) -j$(CPUS) server.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
@@ -50,7 +50,7 @@
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
       <description>Client</description>
-      <source>[CONFIG_DIR]/motes/6tisch-client/client.c</source>
+      <source>[CONFIG_DIR]/motes/client/client.c</source>
       <commands>$(MAKE) -j$(CPUS) client.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
