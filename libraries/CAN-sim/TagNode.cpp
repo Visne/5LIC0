@@ -34,17 +34,17 @@ float TagNode::GetNextSendTime(CANFDmessage_t* msg)
 {   
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(1, 50);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0, 2000);
 
     msg->command = PRODUCT_SCAN;
     msg->to = id_; // TODO: implement cluster head instead
     msg->from = id_;
     msg->cb = scan_cb_;
 
-    int t_next = dist(rng);
+    float t_next = dist(rng) / 1000.0; // Used as ms
     // Not randomized for now, just send 2s to get 8 messages/s on average
-    t_next = 2;
-    log("Next message will be sent in %d seconds.", t_next);
+    
+    log("Next message will be sent in %f seconds.", t_next);
     return t_next;
 }
 
