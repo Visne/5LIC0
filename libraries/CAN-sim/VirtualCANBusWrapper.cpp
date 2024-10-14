@@ -17,7 +17,7 @@ static VirtualCANBus bus;
 // }
 
 /* Wrapper functions */
-extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t)) {
+extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t, uint64_t)) {
     return bus.addNode(id, scanCallBack) ? 1 : 0;
 }
 
@@ -27,8 +27,29 @@ extern "C" uint8_t remove_node(uint64_t id) {
 
 extern "C" float simulate_can_bus() {
     float result = bus.simulateCANBus();
-    printf("Wrapper got %f seconds\n", result);
     return result;
+}
+
+extern "C" void send_can_message(CAN_command command, uint64_t target_node, char* payload) {
+    switch (command) {
+        case SCAN_ACK: {
+            CANFDmessage_t msg = {
+                SCAN_ACK,
+                target_node,
+                bus.cluster_head_id,
+                nullptr
+            };
+            bus.enqueueCANMessage(0.0, msg);
+            // bus.simulateCANBus();
+            break;
+        }
+        case PRODUCT_UPDATE: {
+            printf("Not implemented yet\n");
+        }
+        default:
+            break;
+    }
+    return;
 }
 
 #endif

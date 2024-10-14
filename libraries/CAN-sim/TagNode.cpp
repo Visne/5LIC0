@@ -22,7 +22,9 @@ scan_data_msg_t TagNode::GenerateScan()
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> random_customer_id(MIN_CUST_ID, MAX_CUST_ID);
     unsigned long customer_id = random_customer_id(rng);
+    #ifdef DEBUG_NODE
     log("Generated scan: { cust: %ld, prod: %lld }", customer_id, product_.id);
+    #endif
     return {
         customer_id, // Random customer
         product_.id
@@ -34,7 +36,7 @@ float TagNode::GetNextSendTime(CANFDmessage_t* msg)
 {   
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(0, 2000);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(1000, 3000);
 
     msg->command = PRODUCT_SCAN;
     msg->to = id_; // TODO: implement cluster head instead
@@ -44,23 +46,34 @@ float TagNode::GetNextSendTime(CANFDmessage_t* msg)
     float t_next = dist(rng) / 1000.0; // Used as ms
     // Not randomized for now, just send 2s to get 8 messages/s on average
     
+    #ifdef DEBUG_NODE
     log("Next message will be sent in %f seconds.", t_next);
+    #endif
     return t_next;
 }
 
+// Messages on the bus are not explicitly listened to by TagNode objects.
+// Rather, a callback to a particular TagNode is made via this method when the corresponding CAN message is up next on the bus.
 void TagNode::ProcessCommand(CANFDmessage_t msg)
 {
     switch (msg.command){
         case PRODUCT_SCAN:
-            #ifdef DEBUG
+            #ifdef DEBUG_NODE
             log("Calling callback", 0);
             #endif
-            (*scan_cb_)(GenerateScan());
-            #ifdef DEBUG
+            (*scan_cb_)(GenerateScan(), id_);
+            awaiting_ACK = true;
+            #ifdef DEBUG_NODE
             log("Survived callback", 0);
             #endif
             break;
-        case PRICE_UPDATE:
+        case SCAN_ACK:
+            #ifdef DEBUG_NODE
+            log("ACK received!", 0);
+            awaiting_ACK = false;
+            #endif
+            break;
+        case PRODUCT_UPDATE:
             printf("Not implemented yet\n");
             break;
         default:

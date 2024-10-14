@@ -4,7 +4,7 @@
 float VirtualCANBus::simulateCANBus()
 {
     float time_to_sleep = -1;
-    #ifdef DEBUG
+    #ifdef DEBUG_BUS
     log("Current queue status:", 0);
     for (auto msg : bus_queue_) {
         log("{ from %d to %d, command: %d } at t=%f", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
@@ -20,7 +20,9 @@ float VirtualCANBus::simulateCANBus()
 
         // Fetch next CAN message to be sent
         scheduled_bus_activity_t next = bus_queue_.front();
+        #ifdef DEBUG_BUS
         log("Now processing{ from %d to %d, command: %d } at t=%f", next.msg.from, next.msg.to, next.msg.command, next.time_until);
+        #endif
         // If not scheduled for next time unit, then thread can go to sleep until that time
         if (next.time_until > 0)
         {
@@ -39,10 +41,14 @@ float VirtualCANBus::simulateCANBus()
                  // Execute CAN command presently sent on the bus
                 nodes_[next.msg.to]->ProcessCommand(next.msg);
                 bus_queue_.pop_front();
-                CANFDmessage_t next_msg;
-                int t_next = nodes_[next.msg.from]->GetNextSendTime(&next_msg);
-                
-                enqueueCANMessage(t_next, next_msg);
+
+                // If current CAN message is a product scan, that means sending node is eligible to generate the next one
+                if (next.msg.command == PRODUCT_SCAN) {
+                    CANFDmessage_t next_msg;
+                    int t_next = nodes_[next.msg.from]->GetNextSendTime(&next_msg);
+                    enqueueCANMessage(t_next, next_msg);
+                }
+            
                 // Progress time that has passed for each frame by 1 step
                 for (scheduled_bus_activity_t& msg : bus_queue_)
                 {
@@ -74,14 +80,18 @@ void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
         scheduled_bus_activity_t current = *it;
         // log("Comparing own time %d against present message's %d", scheduled_message.time_until, current.time_until);
         // In case of a message that will be sent sooner, move further back to the queue
-        if (scheduled_message.time_until > current.time_until) {
+
+        // Negative time = "now". Message has just been delayed more, but this means nothing for CAN's prioritization.
+        float time_of_contending_message = std::max(current.time_until, (float)0.0); 
+
+        if (scheduled_message.time_until > time_of_contending_message) {
             // log("He'll be earlier", 0);
             continue;
         }
         // In case of simultaneous messages (bus collision), order is determined by command prio, if higher prio (lower ID), then move back
-        if (scheduled_message.time_until == current.time_until) {
+        if (scheduled_message.time_until == time_of_contending_message) {
             // log("We're equal", 0);
-            if (scheduled_message.msg.command < current.msg.command) {
+            if (scheduled_message.msg.command >= current.msg.command) {
                 // log("He has higher prio", 0);
                 continue;
             }
@@ -100,7 +110,7 @@ void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
 }
 
 /* Adds a node to the bus */
-bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t))
+bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t))
 {
     if (nodes_.find(id) == nodes_.end())
     {

@@ -35,7 +35,9 @@ private:
     }
 
 public:
-    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t));
+    uint64_t cluster_head_id;
+
+    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t));
     bool removeNode(const uint64_t id);
 
     bool sendData(const std::string& data);

@@ -7,15 +7,18 @@
 #include <random>
 #include <memory>
 #include <stdexcept>
+#include <math.h>
 
 class TagNode
 {
 private:
     uint64_t id_;            // MAC address
     product_info_t product_; // Product currently being displayed
+    uint64_t cluser_head_id_;// Logical CAN address of cluster head (send commands to this node)
+    bool awaiting_ACK = false;
 
     // Function callback pointers for commands
-    void (*scan_cb_)(scan_data_msg_t);
+    void (*scan_cb_)(scan_data_msg_t, uint64_t);
 
     // Basic logging functionality as std::format did not work (C++11)
     // Taken from stackoverflow: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
@@ -34,7 +37,7 @@ private:
     }
 
 public:
-    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t))
+    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t, uint64_t))
     {
         id_ = id;
         product_ = {
