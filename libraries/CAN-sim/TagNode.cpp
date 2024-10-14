@@ -52,9 +52,13 @@ void TagNode::ProcessCommand(CANFDmessage_t msg)
 {
     switch (msg.command){
         case PRODUCT_SCAN:
+            #ifdef DEBUG
             log("Calling callback", 0);
+            #endif
             (*scan_cb_)(GenerateScan());
+            #ifdef DEBUG
             log("Survived callback", 0);
+            #endif
             break;
         case PRICE_UPDATE:
             printf("Not implemented yet\n");

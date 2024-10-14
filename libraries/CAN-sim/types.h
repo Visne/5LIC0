@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string>
 
+// #define DEBUG //Uncomment to enable debug mode
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100
 

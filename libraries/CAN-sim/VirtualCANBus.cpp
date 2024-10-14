@@ -4,10 +4,12 @@
 float VirtualCANBus::simulateCANBus()
 {
     float time_to_sleep = -1;
+    #ifdef DEBUG
     log("Current queue status:", 0);
     for (auto msg : bus_queue_) {
         log("{ from %d to %d, command: %d } at t=%f", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
     }
+    #endif
     // Loop until next frame is not directly up, or queue empty (should never happen)
     while (time_to_sleep < 0)
     {
@@ -18,9 +20,7 @@ float VirtualCANBus::simulateCANBus()
 
         // Fetch next CAN message to be sent
         scheduled_bus_activity_t next = bus_queue_.front();
-        
         log("Now processing{ from %d to %d, command: %d } at t=%f", next.msg.from, next.msg.to, next.msg.command, next.time_until);
-
         // If not scheduled for next time unit, then thread can go to sleep until that time
         if (next.time_until > 0)
         {
@@ -52,7 +52,6 @@ float VirtualCANBus::simulateCANBus()
             };
         }
     }
-    log("Going to sleep for %f seconds.", time_to_sleep);
     return time_to_sleep;
 }
 
