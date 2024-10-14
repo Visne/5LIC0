@@ -1,5 +1,5 @@
 #pragma once
-#include "../coap-headers/coap-datatypes.h"
+#include "coap-datatypes.h"
 #include "coap-engine.h"
 
 product_info_t decode_product_response(coap_message_t* response) {

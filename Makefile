@@ -5,7 +5,7 @@ clean: $(addprefix clean-, $(MOTES))
 distclean: $(addprefix distclean-, $(MOTES))
 
 $(MOTES):
-	make -C motes/$@/ TARGET=cooja $@.cooja
+	make -C motes/$@/ TARGET=cooja
 
 clean-%:
 	make -C	motes/$*/ TARGET=cooja clean

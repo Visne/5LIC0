@@ -3,9 +3,7 @@
 #include <string.h>
 #include "contiki.h"
 #include "coap-engine.h"
-#include "../coap-headers/coap-datatypes.h"
-
-
+#include "../shared/coap/coap-datatypes.h"
 
 //extern coap_resource_t res_tagquery;
 extern coap_resource_t res_scan;

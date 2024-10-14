@@ -1,6 +1,6 @@
 ///FILE contains application specific datatypes and variables/macros. Methods called by servers or clients are stored in other headers
 #pragma once
-#include "../coap-headers/coap-datatypes.h"
+#include "coap-datatypes.h"
 
 #define PRODUCT_ID_LEN 16
 #define PRODUCT_DESCRIPT_LEN 48

@@ -6,10 +6,7 @@
 #include "coap-engine.h"
 #include "coap-blocking-api.h"
 #include "sys/node-id.h"
-#include "../coap-headers/coap-datatypes.h"
-
-
-
+#include "../shared/coap/coap-datatypes.h"
 
 PROCESS(client_process_v1b, "client process with customer scan");
 AUTOSTART_PROCESSES(&client_process_v1b);
