@@ -1,5 +1,6 @@
-CONTIKI_PROJECT = server
+CONTIKI_PROJECT = price-client
+
 all: $(CONTIKI_PROJECT)
 
-CONTIKI = ../../..
+include ../../Makefile.path
 include $(CONTIKI)/Makefile.include

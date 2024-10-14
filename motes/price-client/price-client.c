@@ -1,9 +1,8 @@
 #include "contiki.h"
+#include "random.h"
 #include "net/routing/routing.h"
-#include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
 #include "sys/log.h"
-#include <stdlib.h>
 
 #define LOG_MODULE "PriceClient"
 #define LOG_LEVEL LOG_LEVEL_INFO
@@ -27,8 +26,7 @@ PROCESS_THREAD(udp_client_process, ev, data) {
 
   // Initialize UDP connection
   simple_udp_register(&udp_conn, CLIENT_PORT, NULL, SERVER_PORT, NULL);
-  LOG_INFO("UDP client started
-");
+  LOG_INFO("UDP client started\n");
 
   // Set a timer to send requests periodically
   etimer_set(&periodic_timer, SEND_INTERVAL);
@@ -42,16 +40,14 @@ PROCESS_THREAD(udp_client_process, ev, data) {
 
     // Create the request message
     snprintf(request_message, sizeof(request_message), "Product ID: %d, Customer ID: %d", product_id, customer_id);
-    LOG_INFO("Sending request: %s
-", request_message);
+    LOG_INFO("Sending request: %s\n", request_message);
 
     // Send the request to the server
     uip_ipaddr_t dest_ipaddr;
     if(NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
       simple_udp_sendto(&udp_conn, request_message, strlen(request_message) + 1, &dest_ipaddr);
     } else {
-      LOG_INFO("No route to server
-");
+      LOG_INFO("No route to server\n");
     }
 
     // Reset the timer

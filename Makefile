@@ -1,4 +1,4 @@
-MOTES ?= client server coap-client coap-server price-server hello-world
+MOTES ?= client server coap-client coap-server price-client price-server hello-world
 
 all: $(MOTES)
 clean: $(addprefix clean-, $(MOTES))
