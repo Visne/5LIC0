@@ -1,0 +1,6 @@
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
+
+#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
+
+#endif
