@@ -59,7 +59,7 @@ public:
     scan_data_msg_t GenerateScan();
 
     /* Return time in s at which next tag scan will take place, populates fields of msg to have correct info on message*/
-    int GetNextSendTime(CANFDmessage_t *msg);
+    float GetNextSendTime(CANFDmessage_t *msg);
 
     void ProcessCommand(CANFDmessage_t msg);
 };

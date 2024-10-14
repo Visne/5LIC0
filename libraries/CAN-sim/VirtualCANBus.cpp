@@ -1,12 +1,12 @@
 #include "VirtualCANBus.hpp"
 #include <cstring>
 
-int VirtualCANBus::simulateCANBus()
+float VirtualCANBus::simulateCANBus()
 {
-    int time_to_sleep = -1;
+    float time_to_sleep = -1;
     log("Current queue status:", 0);
     for (auto msg : bus_queue_) {
-        log("{ from %d to %d, command: %d } at t=%d", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
+        log("{ from %d to %d, command: %d } at t=%f", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
     }
     // Loop until next frame is not directly up, or queue empty (should never happen)
     while (time_to_sleep < 0)
@@ -19,7 +19,7 @@ int VirtualCANBus::simulateCANBus()
         // Fetch next CAN message to be sent
         scheduled_bus_activity_t next = bus_queue_.front();
         
-        log("Now processing{ from %d to %d, command: %d } at t=%d", next.msg.from, next.msg.to, next.msg.command, next.time_until);
+        log("Now processing{ from %d to %d, command: %d } at t=%f", next.msg.from, next.msg.to, next.msg.command, next.time_until);
 
         // If not scheduled for next time unit, then thread can go to sleep until that time
         if (next.time_until > 0)
@@ -44,18 +44,20 @@ int VirtualCANBus::simulateCANBus()
                 
                 enqueueCANMessage(t_next, next_msg);
                 // Progress time that has passed for each frame by 1 step
-                for (auto msg : bus_queue_)
+                for (scheduled_bus_activity_t& msg : bus_queue_)
                 {
-                    msg.time_until--;
+                    msg.time_until -= CAN_UNIT_STEP;
                 }
+                time_to_sleep = CAN_UNIT_STEP;
             };
         }
     }
+    log("Going to sleep for %f seconds.", time_to_sleep);
     return time_to_sleep;
 }
 
 /* Loops over current pending CAN messages queue, inserts new message where appropriate*/
-void VirtualCANBus::enqueueCANMessage(int time_until, CANFDmessage_t msg)
+void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
 {
     scheduled_bus_activity_t scheduled_message = {
         time_until,

@@ -10,7 +10,7 @@ class VirtualCANBus {
 private:
     
     typedef struct scheduled_bus_activity {
-        int time_until; // Time until this message should be sent
+        float time_until; // Time until this message should be sent in seconds
         CANFDmessage_t msg;
     } scheduled_bus_activity_t;
 
@@ -42,9 +42,9 @@ public:
     bool receiveData(std::string& data);
 
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
-    int simulateCANBus();
+    float simulateCANBus();
     /* Schedules a CAN message to be sent in time_until s*/
-    void enqueueCANMessage(int time_until, CANFDmessage msg);
+    void enqueueCANMessage(float time_until, CANFDmessage msg);
 };
 
 #endif // VIRTUALCANBUS_HPP

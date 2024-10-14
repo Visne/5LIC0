@@ -30,8 +30,8 @@ scan_data_msg_t TagNode::GenerateScan()
 }
 
 /* Return time in s at which next tag scan will take place*/
-int TagNode::GetNextSendTime(CANFDmessage_t* msg)
-{
+float TagNode::GetNextSendTime(CANFDmessage_t* msg)
+{   
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> dist(1, 50);
@@ -42,6 +42,8 @@ int TagNode::GetNextSendTime(CANFDmessage_t* msg)
     msg->cb = scan_cb_;
 
     int t_next = dist(rng);
+    // Not randomized for now, just send 2s to get 8 messages/s on average
+    t_next = 2;
     log("Next message will be sent in %d seconds.", t_next);
     return t_next;
 }

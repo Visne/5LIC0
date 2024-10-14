@@ -37,6 +37,8 @@
 #include <stdio.h>
 #include "sys/etimer.h"
 
+#define NR_OF_CAN_NODES 16
+
 typedef struct product_info_msg
 {
   /// Price of the product in cents
@@ -57,7 +59,7 @@ extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t));
 extern uint8_t remove_node(uint64_t  id);
 extern uint8_t send_data(uint64_t  senderId, const char *data);
 extern uint8_t receive_data(uint64_t receiverId, char *data);
-extern int simulate_can_bus();
+extern float simulate_can_bus();
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
 AUTOSTART_PROCESSES(&node_process);
@@ -76,13 +78,13 @@ PROCESS_THREAD(node_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < NR_OF_CAN_NODES; i++) {
     add_node(i, &scan_callback);
   }
 
   while (1) {
-    int time_to_sleep = simulate_can_bus();
-    printf("Simulated CAN bus, %d seconds until next message\n", time_to_sleep);
+    float time_to_sleep = simulate_can_bus();
+    printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
     etimer_set(&timer, time_to_sleep * CLOCK_SECOND);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
   }

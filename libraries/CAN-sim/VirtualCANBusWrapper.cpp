@@ -25,8 +25,10 @@ extern "C" uint8_t remove_node(uint64_t id) {
     return bus.removeNode(id) ? 1 : 0;
 }
 
-extern "C" uint8_t simulate_can_bus() {
-    return bus.simulateCANBus();
+extern "C" float simulate_can_bus() {
+    float result = bus.simulateCANBus();
+    printf("Wrapper got %f seconds\n", result);
+    return result;
 }
 
 #endif

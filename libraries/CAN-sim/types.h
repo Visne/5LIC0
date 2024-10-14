@@ -7,6 +7,10 @@
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100
 
+// 29 bit ID + 64 byte payload = 541 bits per message. 1Mbit/s -> 1.000.000 / 541 =~ 1848 msgs per second
+#define CAN_FREQ 1848
+#define CAN_UNIT_STEP 0.0078125 // representation of time in seconds to send 1 CAN message, currently set to 1/CLOCK_SECOND
+
 typedef struct product_info_msg {
     /// Price of the product in cents
     unsigned short price;
