@@ -1,5 +1,5 @@
 #pragma once
-#include "../coap-headers/coap-datatypes.h"
+#include "coap-datatypes.h"
 
 /*Database-related methods*/
 

@@ -1,11 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "contiki.h"
 #include "coap-engine.h"
-#include "../coap-headers/coap-datatypes.h"
+#include "tsch.h"
+#include "sys/log.h"
 
+#include "../shared/custom-schedule.h"
 
+#define LOG_MODULE "CoAP Server"
+#define LOG_LEVEL LOG_LEVEL_DBG
 
 //extern coap_resource_t res_tagquery;
 extern coap_resource_t res_scan;
@@ -22,6 +23,14 @@ PROCESS_THREAD(server_coap_v1b, ev, data)
 	//static customer_tab_t *customers = NULL;
 	 
 	PROCESS_BEGIN();
+
+    initialize_tsch_schedule();
+
+    if (NETSTACK_ROUTING.root_start()) {
+        LOG_ERR("Failed to set up RPL root node\n");
+        PROCESS_EXIT();
+    }
+
 	//etimer_set(&et, TOGGLE_INTERVAL * CLOCK_SECOND);
 	coap_activate_resource(&res_tagquery, "test/query");
 	coap_activate_resource(&res_scan, "test/scan");

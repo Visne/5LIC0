@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "../coap-headers/coap-server-query.h"
-#include "../coap-headers/coap-datatypes.h"
+
+#include "../../shared/coap/coap-server-query.h"
+#include "../../shared/coap/coap-datatypes.h"
 
 
 static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);

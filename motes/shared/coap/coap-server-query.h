@@ -1,5 +1,5 @@
 #pragma once
-#include "../coap-headers/coap-datatypes.h"
+#include "coap-datatypes.h"
 
 void init_test_database(product_info_t* db, unsigned long long int size) { //initialized database with testing data
     for (unsigned long long i = 0; i < size; i++) {

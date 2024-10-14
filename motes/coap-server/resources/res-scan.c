@@ -1,12 +1,10 @@
-
 #include "coap-engine.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include "../coap-headers/coap-server-scan.h"
-#include "../coap-headers/coap-datatypes.h"
-
+#include "../../shared/coap/coap-server-scan.h"
+#include "../../shared/coap/coap-datatypes.h"
 
 static void res_post_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 //static req_product_data_t unpack_get_payload(coap_message_t* request); //function returns a struct contianing the product data contained in the recieved coap packet
