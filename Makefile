@@ -1,7 +1,14 @@
-all:
-	make -C motes/client/ client.cooja TARGET=cooja
-	make -C motes/server/ server.cooja TARGET=cooja
+MOTES ?= client server coap-client coap-server price-server hello-world
 
-distclean:
-	make -C	motes/client/ distclean TARGET=cooja
-	make -C	motes/server/ distclean TARGET=cooja
+all: $(MOTES)
+clean: $(addprefix clean-, $(MOTES))
+distclean: $(addprefix distclean-, $(MOTES))
+
+$(MOTES):
+	make -C motes/$@/ TARGET=cooja $@.cooja
+
+clean-%:
+	make -C	motes/$*/ TARGET=cooja clean
+
+distclean-%:
+	make -C	motes/$*/ TARGET=cooja distclean
