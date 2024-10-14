@@ -18,7 +18,6 @@
 #define CUSTOMER_DB_SIZE 100 //used to indicate how many customers are currently using system (testing)
 
 #define TOGGLE_INTERVAL 10
-#define SERVER_EP "coap://[fe80::201:1:1:1]" //change this/FIXME
 #define TRANSX_SEP ":" //seperator used for packing/unpacking data for TX/RX
 
 //NOTE: all structs meant to be directly (or nearly so) transmitted over COAP should use char fields rather for easier transmission
