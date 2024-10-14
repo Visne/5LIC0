@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "contiki.h"
 #include "coap-engine.h"
-#include "../shared/coap/coap-datatypes.h"
 
 //extern coap_resource_t res_tagquery;
 extern coap_resource_t res_scan;
