@@ -57,7 +57,7 @@ float TagNode::GetNextSendTime(CANFDmessage_t* msg)
 void TagNode::ProcessCommand(CANFDmessage_t msg)
 {
     switch (msg.command){
-        case PRODUCT_SCAN:
+        case PRODUCT_SCAN: {
             #ifdef DEBUG_NODE
             log("Calling callback", 0);
             #endif
@@ -67,16 +67,22 @@ void TagNode::ProcessCommand(CANFDmessage_t msg)
             log("Survived callback", 0);
             #endif
             break;
-        case SCAN_ACK:
+        }
+        case SCAN_ACK: {
             #ifdef DEBUG_NODE
             log("ACK received!", 0);
             awaiting_ACK = false;
             #endif
             break;
-        case PRODUCT_UPDATE:
-            printf("Not implemented yet\n");
+        }
+        case PRODUCT_UPDATE:{
+            product_info_msg_t data = msg.data.product_info;
+            char name[16];
+            memcpy(name, data.product_name, data.product_name_len);
+            log("Product info updated: { %ld, %d, %s }", data.product_id, data.price, name);
             
             break;
+        }
         default:
             printf("Unknown command\n");
     }

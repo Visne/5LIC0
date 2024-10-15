@@ -44,6 +44,8 @@ public:
     float simulateCANBus();
     /* Schedules a CAN message to be sent in time_until s*/
     void enqueueCANMessage(float time_until, CANFDmessage msg);
+
+    void setProductId(uint64_t node_id, unsigned long product_id);
 };
 
 #endif // VIRTUALCANBUS_HPP

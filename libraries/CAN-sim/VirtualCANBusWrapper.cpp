@@ -24,7 +24,7 @@ extern "C" float simulate_can_bus() {
     return result;
 }
 
-extern "C" void send_can_message(CAN_command_t command, uint64_t target_node, CANFD_data_t payload) {
+extern "C" void send_can_message(CAN_command command, uint64_t target_node, CANFD_data_t payload) {
     switch (command) {
         case SCAN_ACK: {
             CANFDmessage_t msg = {
@@ -40,7 +40,7 @@ extern "C" void send_can_message(CAN_command_t command, uint64_t target_node, CA
         case PRODUCT_UPDATE: {
             printf("Not implemented yet\n");
             CANFDmessage_t msg = {
-                SCAN_ACK,
+                PRODUCT_UPDATE,
                 target_node,
                 bus.cluster_head_id,
                 payload
@@ -52,6 +52,10 @@ extern "C" void send_can_message(CAN_command_t command, uint64_t target_node, CA
             break;
     }
     return;
+}
+
+extern "C" void set_product_id(uint64_t node_id, unsigned long product_id) {
+    bus.setProductId(node_id, product_id);
 }
 
 #endif

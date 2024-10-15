@@ -65,14 +65,15 @@ typedef enum CAN_command {
     SCAN_ACK,
     PRODUCT_UPDATE,
     PRODUCT_UPDATE_ACK
-} CAN_command_t;
+} CAN_command;
 
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
 extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t, uint64_t), void (*product_update_callback) (unsigned long, uint64_t, product_info_msg_t*));
 extern uint8_t remove_node(uint64_t  id);
-extern void send_can_message(CAN_command_t command, uint64_t target_node, CANFD_data_t payload);
+extern void send_can_message(CAN_command command, uint64_t target_node, CANFD_data_t payload);
 extern float simulate_can_bus();
+extern void set_product_id(uint64_t node_id, unsigned long product_id);
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
 AUTOSTART_PROCESSES(&node_process);
@@ -118,6 +119,7 @@ PROCESS_THREAD(node_process, ev, data)
 
   for (int i = 0; i < NR_OF_CAN_NODES; i++) {
     add_node(i, &scan_callback, &product_update_callback);
+    set_product_id(i, 1);
   }
 
   while (1) {

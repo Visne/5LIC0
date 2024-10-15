@@ -148,3 +148,10 @@ bool VirtualCANBus::removeNode(const uint64_t id)
     }
     return false;
 }
+
+void setProductId(uint64_t node_id, unsigned long product_id) {
+    if (nodes_.find(node_id) != nodes_.end())
+    {
+        nodes_[node_id].SetNodeProduct(node_id);
+    }
+}
