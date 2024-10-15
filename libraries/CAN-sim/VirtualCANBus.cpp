@@ -1,6 +1,40 @@
 #include "VirtualCANBus.hpp"
 #include <cstring>
 
+CANFDmessage_t VirtualCANBus::NewProductScanMsg(uint64_t node_id) {
+    CANFD_data_t payload;
+    payload.empty = true;
+    CANFDmessage_t scan_msg = {
+        PRODUCT_SCAN,
+        node_id,
+        cluster_head_id,
+        payload
+    };
+    return scan_msg;
+}
+CANFDmessage_t VirtualCANBus::NewProductUpdateACK(uint64_t node_id) {
+    CANFD_data_t payload;
+    payload.empty = true;
+    CANFDmessage_t scan_msg = {
+        PRODUCT_UPDATE_ACK,
+        node_id,
+        cluster_head_id,
+        payload
+    };
+    return scan_msg;
+}
+CANFDmessage_t VirtualCANBus::NewProductUpdateRequestMsg(uint64_t node_id) {
+    CANFD_data_t payload;
+    payload.empty = true;
+    CANFDmessage_t request_msg = {
+        REQUEST_PRODUCT_UPDATE,
+        node_id, // Must be to calling node, not cluster head, as callback is made with info from calling node
+        node_id,
+        payload
+    };
+    return request_msg;
+}
+
 float VirtualCANBus::simulateCANBus()
 {
     float time_to_sleep = -1;
@@ -21,7 +55,7 @@ float VirtualCANBus::simulateCANBus()
         // Fetch next CAN message to be sent
         scheduled_bus_activity_t next = bus_queue_.front();
         #ifdef DEBUG_BUS
-        log("Now processing{ from %d to %d, command: %d } at t=%f", next.msg.from, next.msg.to, next.msg.command, next.time_until);
+        log("Looking at { from %d to %d, command: %d } at t=%f", next.msg.from, next.msg.to, next.msg.command, next.time_until);
         #endif
         // If not scheduled for next time unit, then thread can go to sleep until that time
         if (next.time_until > 0)
@@ -38,9 +72,10 @@ float VirtualCANBus::simulateCANBus()
         {
             // Double check if target node exists, if not, skip
             if (nodes_.find(next.msg.to) != nodes_.end()) {
-                 // Execute CAN command presently sent on the bus
-                nodes_[next.msg.to]->ProcessCommand(next.msg);
                 bus_queue_.pop_front();
+                 // Execute CAN command presently sent on the bus
+                ProcessMessage(next.msg);
+                
             
                 // Progress time that has passed for each frame by 1 step
                 for (scheduled_bus_activity_t& msg : bus_queue_)
@@ -55,7 +90,7 @@ float VirtualCANBus::simulateCANBus()
 }
 
 /* Loops over current pending CAN messages queue, inserts new message where appropriate*/
-static void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
+void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
 {
     scheduled_bus_activity_t scheduled_message = {
         time_until,
@@ -71,7 +106,7 @@ static void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t ms
     for (auto it = bus_queue_.begin(); it != bus_queue_.end(); ++it)
     {
         scheduled_bus_activity_t current = *it;
-        // log("Comparing own time %d against present message's %d", scheduled_message.time_until, current.time_until);
+        // log("Comparing own time %f against present message's %f", scheduled_message.time_until, current.time_until);
         // In case of a message that will be sent sooner, move further back to the queue
 
         // Negative time = "now". Message has just been delayed more, but this means nothing for CAN's prioritization.
@@ -93,7 +128,6 @@ static void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t ms
         // log("Inserted message at location %d", i);
         // Time_until of message next up is greater, or we have higher prio at equal time. Insert after current element.
         bus_queue_.insert(it, scheduled_message);
-        
         return;
         i++;
     }
@@ -103,18 +137,18 @@ static void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t ms
 }
 
 /* Adds a node to the bus */
-bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*product_update_cb)(unsigned long, uint64_t, product_info_t*))
+bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*product_update_cb)(unsigned long, uint64_t))
 {
     if (nodes_.find(id) == nodes_.end())
     {
+        if (cluster_head_id == 0) { cluster_head_id = id; };
         // Create and insert new node
-        TagNode* new_node = new TagNode(id, scan_cb, product_update_cb, &enqueueCANMessage);
+        TagNode* new_node = new TagNode(id, scan_cb, product_update_cb);
         nodes_[id] = new_node;
 
         // Set it to start generating scans
-        CANFDmessage msg;
-        int t_next = new_node->GetNextSendTime(&msg);
-        enqueueCANMessage(t_next, msg);        
+        int t_next = new_node->GetNextSendTime();
+        enqueueCANMessage(t_next, NewProductScanMsg(id));        
         return true;
     }
     return false;
@@ -136,6 +170,66 @@ void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
 {
     if (nodes_.find(node_id) != nodes_.end())
     {
-        nodes_[node_id]->SetNodeProduct(node_id);
+        nodes_[node_id]->SetNodeProduct(product_id);
+        // Generate new product update request
+        enqueueCANMessage(0.0, NewProductUpdateRequestMsg(node_id));
     }
+}
+
+// Messages on the bus meant to invoke actions are not explicitly listened to by TagNode objects or the cluster head (cooja mote).
+// Rather, callbacks to particular cooja mote functions are provided to TagNodes on creation, and invoked when the corresponding CAN message is up next on the bus.
+void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
+{
+    switch (msg.command){
+        // Represents a "Product Scan event being received by the cluster head"
+        case PRODUCT_SCAN: {
+            if (nodes_.find(msg.to) != nodes_.end())
+            {
+                TagNode *node = nodes_[msg.to];
+                // Invoke the callback to simulate the data that would have been submitted to cluster head instead, such that it may be forwarded to the wireless network.
+                node->sendProductScan();
+
+                // Queue new Product Scan event for this node.
+                enqueueCANMessage(node->GetNextSendTime(), NewProductScanMsg(msg.to));
+            }
+        }
+        break;
+        case SCAN_ACK: {
+            if (nodes_.find(msg.to) != nodes_.end())
+            {
+                nodes_[msg.to]->receiveScanAck();
+            }
+        }
+        break;
+        // Publish product update message on the bus for all nodes
+        case PRODUCT_UPDATE:{
+            for (std::pair<uint64_t, TagNode *> node_: nodes_) {
+                TagNode *node = node_.second;
+                bool ack = node->receiveProductUpdate(msg.data.product_info);
+                if (ack) {
+                    enqueueCANMessage(0.0, NewProductUpdateACK(msg.to));
+                }
+            }
+        }
+        break;
+        case REQUEST_PRODUCT_UPDATE: {
+            if (nodes_.find(msg.to) != nodes_.end())
+            {
+                TagNode *node = nodes_[msg.to];
+                // Invoke the callback to simulate the product info request that would have been submitted to cluster head normally, such that it may be forwarded to the wireless network.
+                node->sendProductUpdateReq();
+            }
+        }
+        // Acknowledgement message coming from tag that it succesfully updated its product info
+        case PRODUCT_UPDATE_ACK: {
+            if (nodes_.find(msg.to) != nodes_.end())
+            {
+                nodes_[msg.to]->sendProductUpdateAck();
+            }
+        }
+        break;
+        default:
+            printf("Unknown command\n");
+    }
+    return;
 }

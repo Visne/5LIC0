@@ -4,14 +4,16 @@
 #include <stdint.h>
 #include <string>
 
-#define DEBUG_NODE //Uncomment to enable debug mode for nodes
-#define DEBUG_BUS  //Uncomment to enable debug mode for bus
+// #define DEBUG_NODE //Uncomment to enable debug mode for nodes
+// #define DEBUG_BUS  //Uncomment to enable debug mode for bus
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100
 
 // 29 bit ID + 64 byte payload = 541 bits per message. 1Mbit/s -> 1.000.000 / 541 =~ 1848 msgs per second
 #define CAN_FREQ 1848
 #define CAN_UNIT_STEP 0.0078125 // representation of time in seconds to send 1 CAN message, currently set to 1/CLOCK_SECOND
+
+#define UNDEFINED_PRODUCT_ID 0 // Product ID 0 is forbidden
 
 typedef struct product_info_msg {
     /// Price of the product in cents
@@ -32,13 +34,14 @@ enum CAN_command {
     SCAN_ACK,
     PRODUCT_UPDATE,
     PRODUCT_UPDATE_ACK,
-    REQUEST_PRODCUCT_UPDATE,
+    REQUEST_PRODUCT_UPDATE,
 };
 
 /* Union abstracting possible contents of data field of CANFD message, may be a pointer to a callback, or a straightforward value*/
 typedef union CANFD_data {
     void (*cb) (scan_data_msg_t, uint64_t);
     product_info_msg_t product_info;
+    bool empty; // Used to indicate empty message (ACK)
 } CANFD_data_t;
 
 /* Model of CAN FD frame */

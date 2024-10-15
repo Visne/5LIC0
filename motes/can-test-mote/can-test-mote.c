@@ -57,6 +57,7 @@ typedef struct scan_data_msg
 typedef union CANFD_data {
     void (*cb) (scan_data_msg_t, uint64_t);
     product_info_msg_t product_info;
+    bool empty;
 } CANFD_data_t;
 
 /* Enum abstracting CANIDs, priorities are assigned top (highest) to bottom (lowest)*/
@@ -64,12 +65,13 @@ typedef enum CAN_command {
     PRODUCT_SCAN = 0,
     SCAN_ACK,
     PRODUCT_UPDATE,
-    PRODUCT_UPDATE_ACK
+    PRODUCT_UPDATE_ACK,
+    REQUEST_PRODUCT_UPDATE,
 } CAN_command;
 
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
-extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t, uint64_t), void (*product_update_callback) (unsigned long, uint64_t, product_info_msg_t*));
+extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t, uint64_t), void (*product_update_callback) (unsigned long, uint64_t));
 extern uint8_t remove_node(uint64_t  id);
 extern void send_can_message(CAN_command command, uint64_t target_node, CANFD_data_t payload);
 extern float simulate_can_bus();
@@ -90,11 +92,12 @@ void scan_callback(scan_data_msg_t data, uint64_t calling_node) {
     sendcount++;
     // TODO, remove this and replace with actual method call upon receiving in client node.
     CANFD_data_t msg_data;
-    msg_data.cb = NULL;
+    msg_data.empty = true;
+    printf("<-- THIS WOULD BE A NETWORK CALL TO SUBMIT SCAN -->\n");
     send_can_message(SCAN_ACK, calling_node, msg_data);
 }
 
-void product_update_callback(unsigned long product_id, uint64_t calling_node, product_info_msg_t* product_info) {
+void product_update_callback(unsigned long product_id, uint64_t calling_node) {
     printf("NODE#%ld displaying product %ld requests updated information.\n", calling_node, product_id);
     char name[6] = "AUGURK";
     unsigned short price = 12;
@@ -107,6 +110,7 @@ void product_update_callback(unsigned long product_id, uint64_t calling_node, pr
         product_name,
         product_name_len
     };
+    printf("<-- THIS WOULD BE A NETWORK CALL TO FETCH DATA -->\n");
     send_can_message(PRODUCT_UPDATE, calling_node, msg_data);
 }
 
@@ -119,8 +123,9 @@ PROCESS_THREAD(node_process, ev, data)
   etimer_set(&timer, 5 * CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
   for (int i = 0; i < NR_OF_CAN_NODES; i++) {
-    add_node(i, &scan_callback, &product_update_callback);
-    set_product_id(i, 1);
+    int id = i+1;
+    add_node(id, &scan_callback, &product_update_callback);
+    set_product_id(id, id);
   }
 
   while (1) {

@@ -37,15 +37,27 @@ private:
 public:
     uint64_t cluster_head_id;
 
-    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*price_update_cb)(unsigned long, uint64_t, product_info_t*));
+    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*price_update_cb)(unsigned long, uint64_t));
     bool removeNode(const uint64_t id);
 
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
     float simulateCANBus();
     /* Schedules a CAN message to be sent in time_until s*/
-    void enqueueCANMessage(float time_until, CANFDmessage msg);
+    void enqueueCANMessage(float time_until, CANFDmessage_t msg);
 
     void setProductId(uint64_t node_id, unsigned long product_id);
+
+    void ProcessMessage(CANFDmessage_t msg);
+
+    void PrintQueue(){
+        for (auto msg : bus_queue_) {
+            log("{ from %d to %d, command: %d } at t=%f", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
+        }
+    };
+
+    CANFDmessage_t NewProductScanMsg(uint64_t node_id);
+    CANFDmessage_t NewProductUpdateACK(uint64_t node_id);
+    CANFDmessage_t NewProductUpdateRequestMsg(uint64_t node_id);
 };
 
 #endif // VIRTUALCANBUS_HPP

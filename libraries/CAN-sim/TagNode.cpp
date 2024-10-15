@@ -32,16 +32,11 @@ scan_data_msg_t TagNode::GenerateScan()
 }
 
 /* Return time in s at which next tag scan will take place*/
-float TagNode::GetNextSendTime(CANFDmessage_t* msg)
+float TagNode::GetNextSendTime()
 {   
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> dist(1000, 3000);
-
-    msg->command = PRODUCT_SCAN;
-    msg->to = id_; // TODO: implement cluster head instead
-    msg->from = id_;
-    msg->data.cb = scan_cb_;
 
     float t_next = dist(rng) / 1000.0; // Used as ms
     // Not randomized for now, just send 2s to get 8 messages/s on average
@@ -52,46 +47,43 @@ float TagNode::GetNextSendTime(CANFDmessage_t* msg)
     return t_next;
 }
 
-// Messages on the bus are not explicitly listened to by TagNode objects.
-// Rather, a callback to a particular TagNode is made via this method when the corresponding CAN message is up next on the bus.
-void TagNode::ProcessCommand(CANFDmessage_t msg)
-{
-    switch (msg.command){
-        case PRODUCT_SCAN: {
-            #ifdef DEBUG_NODE
-            log("Calling callback", 0);
-            #endif
-            CANFDmessage_t next_msg;
-            int t_next = GetNextSendTime(&next_msg);
-            enqueue_message_(t_next, next_msg);
-            (*scan_cb_)(GenerateScan(), id_);
-            awaiting_ACK = true;
-            #ifdef DEBUG_NODE
-            log("Survived callback", 0);
-            #endif
-            break;
-        }
-        case SCAN_ACK: {
-            #ifdef DEBUG_NODE
-            log("ACK received!", 0);
-            awaiting_ACK = false;
-            #endif
-            break;
-        }
-        case PRODUCT_UPDATE:{
-            product_info_msg_t data = msg.data.product_info;
-            char name[16];
-            memcpy(name, data.product_name, data.product_name_len);
-            log("New product info: { %ld, %d, %s }", data.product_id, data.price, name);
-            break;
-        }
-        case REQUEST_PRODCUCT_UPDATE: {
-            if (product_.id == msg.data.product_info.product_id) {
-                UpdateNodeProduct(msg.data.product_info);
-            }   
-        }
-        default:
-            printf("Unknown command\n");
+// Lets the node send a scan submission wirelessly
+void TagNode::sendProductScan() {
+    #ifdef DEBUG_NODE
+    log("Calling scan callback", 0);
+    #endif
+    if (product_.id == UNDEFINED_PRODUCT_ID) return; // Don't register scans if no product is assigned yet
+    // Call the callback function
+    (*scan_cb_)(GenerateScan(), id_);
+    awaiting_ACK = true;
+}
+
+// Handles receiving the ACK for a product scan on the node's end
+void TagNode::receiveScanAck() {
+    #ifdef DEBUG_NODE
+    log("ACK received!", 0);
+    awaiting_ACK = false;
+    #endif
+}
+
+bool TagNode::receiveProductUpdate(product_info_msg_t data) {
+    if (product_.id == data.product_id) {
+        char name[16];
+        memcpy(name, data.product_name, data.product_name_len);
+        log("New product info: { %ld, %d, %s }", data.product_id, data.price, name);
+        return true;
     }
-    return;
+    return false;
+}
+
+void TagNode::sendProductUpdateReq() {
+    #ifdef DEBUG_NODE
+    log("Calling product update callback", 0);
+    #endif
+    // Call the callback function
+    (*product_update_cb_)(product_.id, id_);
+}
+
+void TagNode::sendProductUpdateAck() {
+    log("Sending product update ACK", 0);
 }

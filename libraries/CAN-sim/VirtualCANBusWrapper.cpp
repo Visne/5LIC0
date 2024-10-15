@@ -11,7 +11,7 @@ extern "C" {
 static VirtualCANBus bus;
 
 /* Wrapper functions */
-extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t, product_info_t*)) {
+extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t)) {
     return bus.addNode(id, scanCallBack, priceUpdateCallBack) ? 1 : 0;
 }
 
@@ -38,7 +38,6 @@ extern "C" void send_can_message(CAN_command command, uint64_t target_node, CANF
             break;
         }
         case PRODUCT_UPDATE: {
-            printf("Not implemented yet\n");
             CANFDmessage_t msg = {
                 PRODUCT_UPDATE,
                 target_node,
@@ -51,6 +50,7 @@ extern "C" void send_can_message(CAN_command command, uint64_t target_node, CANF
         default:
             break;
     }
+    // bus.PrintQueue();
     return;
 }
 

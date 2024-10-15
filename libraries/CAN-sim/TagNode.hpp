@@ -9,18 +9,19 @@
 #include <stdexcept>
 #include <math.h>
 
+#define UNASSIGNED 18446744073709551615 // Max UINT64
+
 class TagNode
 {
 private:
     uint64_t id_;            // MAC address
     product_info_t product_; // Product currently being displayed
-    uint64_t cluser_head_id_;// Logical CAN address of cluster head (send commands to this node)
+    uint64_t cluser_head_id_ = 0;// Logical CAN address of cluster head (send commands to this node)
     bool awaiting_ACK = false;
 
-    void (*enqueue_message_)(float time_until, CANFDmessage_t msg);
     // Function callback pointers for commands
     void (*scan_cb_)(scan_data_msg_t, uint64_t);
-    void (*product_update_cb_)(unsigned long, uint64_t, product_info_t*);
+    void (*product_update_cb_)(unsigned long, uint64_t);
 
     // Basic logging functionality as std::format did not work (C++11)
     // Taken from stackoverflow: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
@@ -42,16 +43,13 @@ public:
     TagNode(
         uint64_t id, 
         void (*scanCb)(scan_data_msg_t, uint64_t), 
-        void (*productUpdateCb)(unsigned long, uint64_t, product_info_t*),
-        void (*enqueueMessage)(float, CANFDmessage_t)
+        void (*productUpdateCb)(unsigned long, uint64_t)
     )
     {
         id_ = id;
-        product_ = {
-            0, 0, "UNDEFINED"};
+        product_ = { 0, 0, "UNDEFINED" };
         scan_cb_ = scanCb;
         product_update_cb_ = productUpdateCb;
-        enqueue_message_ = enqueueMessage;
     }
 
     ~TagNode()
@@ -71,11 +69,16 @@ public:
     scan_data_msg_t GenerateScan();
 
     /* Return time in s at which next tag scan will take place, populates fields of msg to have correct info on message*/
-    float GetNextSendTime(CANFDmessage_t *msg);
-
-    void ProcessCommand(CANFDmessage_t msg);
+    float GetNextSendTime();
 
     unsigned long GetProductId() { return product_.id; };
+
+
+    void sendProductScan();
+    void receiveScanAck();
+    bool receiveProductUpdate(product_info_msg_t data);
+    void sendProductUpdateReq();
+    void sendProductUpdateAck();
 };
 
 #endif // TAGNODE_HPP
