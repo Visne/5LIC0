@@ -116,7 +116,8 @@ PROCESS_THREAD(node_process, ev, data)
   PROCESS_BEGIN();
 
   t_0 = clock_time();
-
+  etimer_set(&timer, 5 * CLOCK_SECOND);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
   for (int i = 0; i < NR_OF_CAN_NODES; i++) {
     add_node(i, &scan_callback, &product_update_callback);
     set_product_id(i, 1);

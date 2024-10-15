@@ -41,23 +41,6 @@ float VirtualCANBus::simulateCANBus()
                  // Execute CAN command presently sent on the bus
                 nodes_[next.msg.to]->ProcessCommand(next.msg);
                 bus_queue_.pop_front();
-
-                // If current CAN message is a product scan, that means sending node is eligible to generate the next one
-                if (next.msg.command == PRODUCT_SCAN) {
-                    CANFDmessage_t next_msg;
-                    int t_next = nodes_[next.msg.from]->GetNextSendTime(&next_msg);
-                    enqueueCANMessage(t_next, next_msg);
-                }
-                if (next.msg.command == PRODUCT_UPDATE) {
-                    product_info_msg_t rec_product_info = next.msg.data.product_info;
-                    for (std::pair<uint64_t, TagNode *> node : nodes_ ) {
-                        TagNode* current_node = node.second;
-                        // If node is currently displaying this product, update info
-                        if(current_node->GetProductId() == rec_product_info.product_id) {
-                            current_node->UpdateNodeProduct(rec_product_info);
-                        }
-                    }
-                }
             
                 // Progress time that has passed for each frame by 1 step
                 for (scheduled_bus_activity_t& msg : bus_queue_)
@@ -72,7 +55,7 @@ float VirtualCANBus::simulateCANBus()
 }
 
 /* Loops over current pending CAN messages queue, inserts new message where appropriate*/
-void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
+static void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
 {
     scheduled_bus_activity_t scheduled_message = {
         time_until,
@@ -125,7 +108,7 @@ bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, 
     if (nodes_.find(id) == nodes_.end())
     {
         // Create and insert new node
-        TagNode* new_node = new TagNode(id, scan_cb, product_update_cb);
+        TagNode* new_node = new TagNode(id, scan_cb, product_update_cb, &enqueueCANMessage);
         nodes_[id] = new_node;
 
         // Set it to start generating scans
@@ -149,9 +132,10 @@ bool VirtualCANBus::removeNode(const uint64_t id)
     return false;
 }
 
-void setProductId(uint64_t node_id, unsigned long product_id) {
+void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
+{
     if (nodes_.find(node_id) != nodes_.end())
     {
-        nodes_[node_id].SetNodeProduct(node_id);
+        nodes_[node_id]->SetNodeProduct(node_id);
     }
 }

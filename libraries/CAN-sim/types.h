@@ -31,7 +31,8 @@ enum CAN_command {
     PRODUCT_SCAN = 0,
     SCAN_ACK,
     PRODUCT_UPDATE,
-    PRODUCT_UPDATE_ACK
+    PRODUCT_UPDATE_ACK,
+    REQUEST_PRODCUCT_UPDATE,
 };
 
 /* Union abstracting possible contents of data field of CANFD message, may be a pointer to a callback, or a straightforward value*/

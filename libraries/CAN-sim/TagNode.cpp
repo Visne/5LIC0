@@ -61,6 +61,9 @@ void TagNode::ProcessCommand(CANFDmessage_t msg)
             #ifdef DEBUG_NODE
             log("Calling callback", 0);
             #endif
+            CANFDmessage_t next_msg;
+            int t_next = GetNextSendTime(&next_msg);
+            enqueue_message_(t_next, next_msg);
             (*scan_cb_)(GenerateScan(), id_);
             awaiting_ACK = true;
             #ifdef DEBUG_NODE
@@ -79,9 +82,13 @@ void TagNode::ProcessCommand(CANFDmessage_t msg)
             product_info_msg_t data = msg.data.product_info;
             char name[16];
             memcpy(name, data.product_name, data.product_name_len);
-            log("Product info updated: { %ld, %d, %s }", data.product_id, data.price, name);
-            
+            log("New product info: { %ld, %d, %s }", data.product_id, data.price, name);
             break;
+        }
+        case REQUEST_PRODCUCT_UPDATE: {
+            if (product_.id == msg.data.product_info.product_id) {
+                UpdateNodeProduct(msg.data.product_info);
+            }   
         }
         default:
             printf("Unknown command\n");

@@ -17,6 +17,7 @@ private:
     uint64_t cluser_head_id_;// Logical CAN address of cluster head (send commands to this node)
     bool awaiting_ACK = false;
 
+    void (*enqueue_message_)(float time_until, CANFDmessage_t msg);
     // Function callback pointers for commands
     void (*scan_cb_)(scan_data_msg_t, uint64_t);
     void (*product_update_cb_)(unsigned long, uint64_t, product_info_t*);
@@ -38,13 +39,19 @@ private:
     }
 
 public:
-    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t, uint64_t), void (*productUpdateCb)(unsigned long, uint64_t, product_info_t*))
+    TagNode(
+        uint64_t id, 
+        void (*scanCb)(scan_data_msg_t, uint64_t), 
+        void (*productUpdateCb)(unsigned long, uint64_t, product_info_t*),
+        void (*enqueueMessage)(float, CANFDmessage_t)
+    )
     {
         id_ = id;
         product_ = {
             0, 0, "UNDEFINED"};
         scan_cb_ = scanCb;
         product_update_cb_ = productUpdateCb;
+        enqueue_message_ = enqueueMessage;
     }
 
     ~TagNode()
