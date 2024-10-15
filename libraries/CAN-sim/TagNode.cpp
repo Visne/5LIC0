@@ -41,7 +41,7 @@ float TagNode::GetNextSendTime(CANFDmessage_t* msg)
     msg->command = PRODUCT_SCAN;
     msg->to = id_; // TODO: implement cluster head instead
     msg->from = id_;
-    msg->cb = scan_cb_;
+    msg->data.cb = scan_cb_;
 
     float t_next = dist(rng) / 1000.0; // Used as ms
     // Not randomized for now, just send 2s to get 8 messages/s on average
@@ -75,6 +75,7 @@ void TagNode::ProcessCommand(CANFDmessage_t msg)
             break;
         case PRODUCT_UPDATE:
             printf("Not implemented yet\n");
+            
             break;
         default:
             printf("Unknown command\n");

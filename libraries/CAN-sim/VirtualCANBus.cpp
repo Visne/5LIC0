@@ -48,6 +48,16 @@ float VirtualCANBus::simulateCANBus()
                     int t_next = nodes_[next.msg.from]->GetNextSendTime(&next_msg);
                     enqueueCANMessage(t_next, next_msg);
                 }
+                if (next.msg.command == PRODUCT_UPDATE) {
+                    product_info_msg_t rec_product_info = next.msg.data.product_info;
+                    for (std::pair<uint64_t, TagNode *> node : nodes_ ) {
+                        TagNode* current_node = node.second;
+                        // If node is currently displaying this product, update info
+                        if(current_node->GetProductId() == rec_product_info.product_id) {
+                            current_node->UpdateNodeProduct(rec_product_info);
+                        }
+                    }
+                }
             
                 // Progress time that has passed for each frame by 1 step
                 for (scheduled_bus_activity_t& msg : bus_queue_)
@@ -110,12 +120,12 @@ void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
 }
 
 /* Adds a node to the bus */
-bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t))
+bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*product_update_cb)(unsigned long, uint64_t, product_info_t*))
 {
     if (nodes_.find(id) == nodes_.end())
     {
         // Create and insert new node
-        TagNode* new_node = new TagNode(id, scan_cb);
+        TagNode* new_node = new TagNode(id, scan_cb, product_update_cb);
         nodes_[id] = new_node;
 
         // Set it to start generating scans
@@ -137,19 +147,4 @@ bool VirtualCANBus::removeNode(const uint64_t id)
         return true;
     }
     return false;
-}
-
-bool VirtualCANBus::sendData(const std::string &data)
-{
-    // Logic to send data
-    printf("%s\n", data.c_str());
-    return 1;
-}
-
-bool VirtualCANBus::receiveData(std::string &data)
-{
-    // Logic to receive data
-    std::string temp = "Test\n";
-    data = temp;
-    return 1;
 }

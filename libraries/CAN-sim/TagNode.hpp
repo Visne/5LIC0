@@ -19,6 +19,7 @@ private:
 
     // Function callback pointers for commands
     void (*scan_cb_)(scan_data_msg_t, uint64_t);
+    void (*product_update_cb_)(unsigned long, uint64_t, product_info_t*);
 
     // Basic logging functionality as std::format did not work (C++11)
     // Taken from stackoverflow: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
@@ -37,12 +38,13 @@ private:
     }
 
 public:
-    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t, uint64_t))
+    TagNode(uint64_t id, void (*scanCb)(scan_data_msg_t, uint64_t), void (*productUpdateCb)(unsigned long, uint64_t, product_info_t*))
     {
         id_ = id;
         product_ = {
             0, 0, "UNDEFINED"};
         scan_cb_ = scanCb;
+        product_update_cb_ = productUpdateCb;
     }
 
     ~TagNode()
@@ -65,6 +67,8 @@ public:
     float GetNextSendTime(CANFDmessage_t *msg);
 
     void ProcessCommand(CANFDmessage_t msg);
+
+    unsigned long GetProductId() { return product_.id; };
 };
 
 #endif // TAGNODE_HPP

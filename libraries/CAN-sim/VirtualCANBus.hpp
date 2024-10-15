@@ -37,11 +37,8 @@ private:
 public:
     uint64_t cluster_head_id;
 
-    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t));
+    bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*price_update_cb)(unsigned long, uint64_t, product_info_t*));
     bool removeNode(const uint64_t id);
-
-    bool sendData(const std::string& data);
-    bool receiveData(std::string& data);
 
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
     float simulateCANBus();

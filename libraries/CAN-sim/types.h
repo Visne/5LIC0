@@ -15,6 +15,7 @@
 
 typedef struct product_info_msg {
     /// Price of the product in cents
+    unsigned long product_id;
     unsigned short price;
     char* product_name;
     unsigned short product_name_len;
@@ -30,14 +31,21 @@ enum CAN_command {
     PRODUCT_SCAN = 0,
     SCAN_ACK,
     PRODUCT_UPDATE,
+    PRODUCT_UPDATE_ACK
 };
+
+/* Union abstracting possible contents of data field of CANFD message, may be a pointer to a callback, or a straightforward value*/
+typedef union CANFD_data {
+    void (*cb) (scan_data_msg_t, uint64_t);
+    product_info_msg_t product_info;
+} CANFD_data_t;
 
 /* Model of CAN FD frame */
 typedef struct CANFDmessage {
     CAN_command command; // 29 bits in real life equivalent, enum assumed to fit in this size
     uint64_t to;         // Node that is to execute given command
     uint64_t from;         // Node that sent given command (important for simulating CAN)
-    void (*cb) (scan_data_msg_t, uint64_t);            // Pointer to the callback function for the given command
+    CANFD_data_t data;            // Pointer to the callback function for the given command
 } CANFDmessage_t;
 
 typedef struct product_info {

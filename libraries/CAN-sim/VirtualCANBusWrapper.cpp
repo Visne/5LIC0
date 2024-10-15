@@ -10,15 +10,9 @@ extern "C" {
 
 static VirtualCANBus bus;
 
-// void scanCallBack(scan_data_msg_t data) {
-//     unsigned long customer_id = data.customer_id;
-//     unsigned long long product_id = data.product_id;
-//     printf("Data: %ld, %lld\n", customer_id, product_id);
-// }
-
 /* Wrapper functions */
-extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t, uint64_t)) {
-    return bus.addNode(id, scanCallBack) ? 1 : 0;
+extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t, product_info_t*)) {
+    return bus.addNode(id, scanCallBack, priceUpdateCallBack) ? 1 : 0;
 }
 
 extern "C" uint8_t remove_node(uint64_t id) {
@@ -30,7 +24,7 @@ extern "C" float simulate_can_bus() {
     return result;
 }
 
-extern "C" void send_can_message(CAN_command command, uint64_t target_node, char* payload) {
+extern "C" void send_can_message(CAN_command_t command, uint64_t target_node, CANFD_data_t payload) {
     switch (command) {
         case SCAN_ACK: {
             CANFDmessage_t msg = {
@@ -45,6 +39,14 @@ extern "C" void send_can_message(CAN_command command, uint64_t target_node, char
         }
         case PRODUCT_UPDATE: {
             printf("Not implemented yet\n");
+            CANFDmessage_t msg = {
+                SCAN_ACK,
+                target_node,
+                bus.cluster_head_id,
+                payload
+            };
+            bus.enqueueCANMessage(0.0, msg);
+            break;
         }
         default:
             break;
