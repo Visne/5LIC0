@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf version="2023090101">
   <simulation>
-    <title>My simulation</title>
+    <title>CoAP observe</title>
     <speedlimit>2.0</speedlimit>
-    <randomseed>123456</randomseed>
+    <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
-      org.contikios.mrm.MRM
-      <obstacles />
+      org.contikios.cooja.radiomediums.UDGM
+      <transmitting_range>50.0</transmitting_range>
+      <interference_range>100.0</interference_range>
+      <success_ratio_tx>1.0</success_ratio_tx>
+      <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
     <events>
       <logoutput>40000</logoutput>
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <description>Cooja Mote Type #1</description>
-      <source>[CONFIG_DIR]/server/server.c</source>
-      <commands>$(MAKE) -j$(CPUS) server.cooja TARGET=cooja</commands>
+      <description>CoAP Observe Server</description>
+      <source>[CONFIG_DIR]/motes/coap-observe-server/coap-observe-server.c</source>
+      <commands>$(MAKE) -j$(CPUS) coap-observe-server.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
       <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -36,7 +39,7 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="18.403208255102186" y="8.33325184845485" />
+          <pos x="22.523448038627237" y="57.651514991624346" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
@@ -46,9 +49,9 @@
     </motetype>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <description>Cooja Mote Type #2</description>
-      <source>[CONFIG_DIR]/client/client.c</source>
-      <commands>$(MAKE) -j$(CPUS) client.cooja TARGET=cooja</commands>
+      <description>CoAP Observer</description>
+      <source>[CONFIG_DIR]/motes/coap-observer/coap-observer.c</source>
+      <commands>$(MAKE) -j$(CPUS) coap-observer.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
       <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -68,7 +71,7 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="7.148669618693493" y="63.372729367857886" />
+          <pos x="39.60940582949405" y="82.26359114472325" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
@@ -78,41 +81,11 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="2.460744440717666" y="86.95971252213029" />
+          <pos x="56.608944139659236" y="52.665066199292355" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
           <id>3</id>
-        </interface_config>
-      </mote>
-      <mote>
-        <interface_config>
-          org.contikios.cooja.interfaces.Position
-          <pos x="96.45080039020358" y="0.35822247773300564" />
-        </interface_config>
-        <interface_config>
-          org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-          <id>4</id>
-        </interface_config>
-      </mote>
-      <mote>
-        <interface_config>
-          org.contikios.cooja.interfaces.Position
-          <pos x="90.12279678452286" y="20.47534578054454" />
-        </interface_config>
-        <interface_config>
-          org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-          <id>5</id>
-        </interface_config>
-      </mote>
-      <mote>
-        <interface_config>
-          org.contikios.cooja.interfaces.Position
-          <pos x="29.97645085412739" y="67.26761107727313" />
-        </interface_config>
-        <interface_config>
-          org.contikios.cooja.contikimote.interfaces.ContikiMoteID
-          <id>6</id>
         </interface_config>
       </mote>
     </motetype>
@@ -124,9 +97,8 @@
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
-      <skin>org.contikios.mrm.MRMVisualizerSkin</skin>
-      <skin>org.contikios.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
-      <viewport>1.7515924517705606 0.0 0.0 1.7515924517705606 128.26098801960887 71.80397960588772</viewport>
+      <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <viewport>4.39252548608207 0.0 0.0 4.39252548608207 66.67881681952113 -123.39433864876716</viewport>
     </plugin_config>
     <bounds x="1" y="1" height="400" width="400" />
   </plugin>
@@ -137,7 +109,7 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="400" y="160" height="240" width="1308" z="2" />
+    <bounds x="400" y="1" height="783" width="1320" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -145,31 +117,11 @@
       <mote>0</mote>
       <mote>1</mote>
       <mote>2</mote>
-      <mote>3</mote>
-      <mote>4</mote>
-      <mote>5</mote>
       <showRadioRXTX />
       <showRadioHW />
       <showLEDs />
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
-    <bounds x="0" y="783" height="166" width="1708" z="4" />
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.Notes
-    <plugin_config>
-      <notes>Enter notes here</notes>
-      <decorations>true</decorations>
-    </plugin_config>
-    <bounds x="400" y="0" height="160" width="1308" z="3" />
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.RadioLogger
-    <plugin_config>
-      <split>150</split>
-      <formatted_time />
-      <analyzers name="6lowpan-pcap" />
-    </plugin_config>
-    <bounds x="401" y="455" height="300" width="500" z="1" />
+    <bounds x="0" y="786" height="166" width="1720" z="2" />
   </plugin>
 </simconf>
