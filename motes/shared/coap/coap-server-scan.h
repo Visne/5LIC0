@@ -107,9 +107,9 @@ void wipe_customer(customer_tab_t** head, int customer_id, char* output_msg) { /
 
 
 
-static scan_data_t unpack_scan_payload(coap_message_t* request) { //turns raw POST request data into usable scan_data_t payload
+static scan_data_coap_t unpack_scan_payload(coap_message_t* request) { //turns raw POST request data into usable scan_data_coap_t payload
     const uint8_t* chunk;
-    static scan_data_t decoded_struct; //raw struct to write to
+    static scan_data_coap_t decoded_struct; //raw struct to write to
     /*
     if (request == NULL) { //borrowed from client chunk handler, checks if request is somehow empty
         //do something

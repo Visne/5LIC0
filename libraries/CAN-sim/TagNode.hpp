@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string.h>
-#include "types.h"
+#include "canTypes.h"
 #include <random>
 #include <memory>
 #include <stdexcept>
@@ -14,6 +14,14 @@
 class TagNode
 {
 private:
+
+    // Struct used to store current product data
+    typedef struct product_info {
+        unsigned long id;
+        unsigned short price;
+        std::string name;
+    } product_info_t;
+
     uint64_t id_;            // MAC address
     product_info_t product_; // Product currently being displayed
     uint64_t cluser_head_id_ = 0;// Logical CAN address of cluster head (send commands to this node)

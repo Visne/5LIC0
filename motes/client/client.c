@@ -38,13 +38,13 @@ PROCESS_THREAD(client, ev, data) {
 
     while (true) {
         if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root)) {
-            scan_data_t scan_data = (scan_data_t) {
+            scan_data_coap_t scan_data = (scan_data_coap_t) {
                 random_rand() % 5000,
                 random_rand() % 5000,
             };
 
             LOG_INFO("Customer #%lu scanned product #%llu\n", scan_data.customer_id, scan_data.product_id);
-            simple_udp_sendto(&connection, &scan_data, sizeof(scan_data_t), &root);
+            simple_udp_sendto(&connection, &scan_data, sizeof(scan_data_coap_t), &root);
         }
 
         etimer_set(&timer, 4000 + (random_rand() % 8000));

@@ -27,7 +27,7 @@ typedef struct { //symbolizes a product
     char product_price[PRODUCT_PRICE_LEN]; //price in cents
     char product_description[PRODUCT_DESCRIPT_LEN]; //short product descriptor
     char is_stocked[PRODUCT_STOCKED_LEN]; //1 if stocked, 0 if not
-} product_info_t;
+} product_info_coap_msg_t;
 
 typedef struct { //datastructure used for transmitting product information requests
     char product_id[PRODUCT_ID_LEN]; //EAN13 product ID
@@ -40,7 +40,7 @@ typedef struct { //used by client to transmit scan requests
     char product_id[PRODUCT_ID_LEN];
     char quantity[ORDER_QUANTITY_LEN];
     char command[ORDER_DB_COMMAND_LEN]; //used to indicate between 0=ADD (add customer to database or product to existing tab), 1=REM (remove N product from customer tab), 2=DELETE (wipe product entry from customer tab) or 3 =WIPE (remove customer entry and tab)
-} scan_data_t;
+} scan_data_coap_t;
 
 
 

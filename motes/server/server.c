@@ -21,7 +21,7 @@ static void on_message(struct simple_udp_connection *c,
                        uint16_t receiver_port,
                        const uint8_t *data,
                        uint16_t len) {
-    scan_data_t* scan_data = (scan_data_t*) data;
+    scan_data_coap_t* scan_data = (scan_data_coap_t*) data;
     LOG_INFO("Received data: customer #%lu scanned product #%llu\n", scan_data->customer_id, scan_data->product_id);
 }
 

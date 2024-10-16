@@ -29,7 +29,7 @@ static void res_post_handler(coap_message_t *request, coap_message_t *response, 
 {
 
     //unpacking (text) request from client into struct
-    scan_data_t request_data = unpack_scan_payload(request);//get struct corresponding to customer scan request
+    scan_data_coap_t request_data = unpack_scan_payload(request);//get struct corresponding to customer scan request
     //convert to appropriate and more usable forms
     int scan_customer_id = atoi(request_data.product_id);
     int scan_product_quantity = atoi(request_data.quantity);
