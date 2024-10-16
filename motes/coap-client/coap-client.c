@@ -6,6 +6,7 @@
 #include "sys/node-id.h"
 
 #include "../shared/coap/coap-datatypes.h"
+#include "../shared/coap/coap-client-query.h"
 #include "../shared/custom-schedule.h"
 
 PROCESS(client_process_v1b, "client process with customer scan");
@@ -52,56 +53,32 @@ PROCESS_THREAD(client_process_v1b, ev, data)
 
                 coap_endpoint_parse(ip, strlen(ip), &server_ep);
 
-                //printf("node id %d\n", node_id);
-                //two test cases
 
                 if ((node_id % 2) == 0) { //if even node id, send scans
-
-                    /* prepare request, TID is set by COAP_BLOCKING_REQUEST() */
                     coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0); //prepare
-                    coap_set_header_uri_path(request,
-                                             "test/scan"); //we'll poll the "product" ressource (at test/hello until i can figure out why any other uri doenst work)
-
-                    scan_data_t scan; // a scan
-                    //lets create a few database access commands (order 500 cigarettes)
-                    sprintf(scan.customer_id, "%d", node_id * 55); //arbitrary
-                    sprintf(scan.product_id, "%d", node_id * 100000);  //ID for cigarettes
-                    sprintf(scan.quantity, "%d", 500); // 500
-                    sprintf(scan.command, "%d", 0); //ADD to inventory
-
-                    char outputmsg[TX_LEN_POST]; //we'll define a buffer containing text corresponding to the product information request --> for now can only realistically send text through coap
-
-                    sprintf(outputmsg, "%s%s%s%s%s%s%s", scan.customer_id, TRANSX_SEP, scan.product_id, TRANSX_SEP,
-                            scan.quantity, TRANSX_SEP,
-                            scan.command); //creating string containing ID:data (data currently blank)
-                    //printf("%s\n",outputmsg);
-                    coap_set_payload(request, (char *) &outputmsg,
-                                     sizeof(outputmsg) - 1); //set the struct to be the payload
+                    coap_set_header_uri_path(request, SCAN_URI);
+                    //construct a payload to send to server with scan
+                    char outputmsg[TX_LEN_POST];
+                    client_task(outputmsg, NODE_SCAN, node_id, node_id, 500, 0); //create request for a scan for product id <node_id * 10000> and client id <node_id> and ADD 500 of the item
+                    //send
+                    coap_set_payload(request, (char*)&outputmsg, TX_LEN_POST - 1); //set the struct to be the payload
                     COAP_BLOCKING_REQUEST(&server_ep, request, client_chunk_handler); //send to server
-
-                    //printf("\n--Done--\n");
+                    
                     etimer_reset(&et);
 
                 } else {
                     /* prepare request, TID is set by COAP_BLOCKING_REQUEST() */
                     coap_init_message(request, COAP_TYPE_CON, COAP_GET, 0); //prepare
-                    coap_set_header_uri_path(request,
-                                             "test/query"); //we'll poll the "product" ressource (at test/hello until i can figure out why any other uri doenst work)
-
-                    req_product_data_t product;
-                    //writing to product info struct
-                    sprintf(product.product_id, "%d", node_id);
-                    snprintf(product.blankbuffer, sizeof(product.blankbuffer), "StoredInfo");
-
-                    char outputmsg[TX_LEN_REQ]; //we'll define a buffer containing text corresponding to the product information request --> for now can only realistically send text through coap
-
-                    sprintf(outputmsg, "%s:%s%s", product.product_id, product.blankbuffer,
-                            "\0"); //creating string containing ID:data (data currently blank)
-                    coap_set_payload(request, (char *) &outputmsg,
-                                     sizeof(outputmsg) - 1); //set the struct to be the payload
+                    coap_set_header_uri_path(request, QUERY_URI);
+                    //construct a payload to send to server with scan
+                    char outputmsg[TX_LEN_REQ];
+                    client_task(outputmsg, NODE_QUERY, node_id, 0, 0, 0); //create request for a product info query for product id <node_id * 10000> 
+                    
+                    //send :3
+                    coap_set_payload(request, (char*)&outputmsg, TX_LEN_REQ- 1); //set the struct to be the payload
                     COAP_BLOCKING_REQUEST(&server_ep, request, client_chunk_handler); //send to server
 
-                    //printf("\n--Done--\n");
+                    
                     etimer_reset(&et);
 
                 }

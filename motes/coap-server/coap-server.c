@@ -4,6 +4,7 @@
 #include "sys/log.h"
 
 #include "../shared/custom-schedule.h"
+#include "../../shared/coap/coap-datatypes.h"
 
 #define LOG_MODULE "CoAP Server"
 #define LOG_LEVEL LOG_LEVEL_DBG
@@ -32,8 +33,8 @@ PROCESS_THREAD(server_coap_v1b, ev, data)
     }
 
 	//etimer_set(&et, TOGGLE_INTERVAL * CLOCK_SECOND);
-	coap_activate_resource(&res_tagquery, "test/query");
-	coap_activate_resource(&res_scan, "test/scan");
+	coap_activate_resource(&res_tagquery, QUERY_URI);
+	coap_activate_resource(&res_scan, SCAN_URI);
 	
 		
 	while (1) { PROCESS_WAIT_EVENT();} //loops and waits for client price requests

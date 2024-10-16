@@ -5,7 +5,16 @@ MODULES += os/net/app-layer/coap
 MODULES_REL += ./resources ../shared
 CFLAGS += -Wno-format-overflow
 
-all: $(CONTIKI_PROJECT)
+# Include CoAP resources
+MODULES_REL += ./resources
 
-include ../../Makefile.path
+CONTIKI=../../..
+
+# Include the CoAP implementation
+include $(CONTIKI)/Makefile.dir-variables
+MODULES += $(CONTIKI_NG_APP_LAYER_DIR)/coap
+
 include $(CONTIKI)/Makefile.include
+
+
+

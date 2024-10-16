@@ -1,6 +1,6 @@
 ///FILE contains application specific datatypes and variables/macros. Methods called by servers or clients are stored in other headers
 #pragma once
-#include "coap-datatypes.h"
+#include "../../shared/coap/coap-datatypes.h"
 
 #define PRODUCT_ID_LEN 16
 #define PRODUCT_DESCRIPT_LEN 48
@@ -19,6 +19,12 @@
 
 #define TOGGLE_INTERVAL 10
 #define TRANSX_SEP ":" //seperator used for packing/unpacking data for TX/RX
+
+#define NODE_SCAN 1
+#define NODE_QUERY 2
+
+#define QUERY_URI "test/query"
+#define SCAN_URI "test/scan"
 
 //NOTE: all structs meant to be directly (or nearly so) transmitted over COAP should use char fields rather for easier transmission
 

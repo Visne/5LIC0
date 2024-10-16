@@ -1,5 +1,6 @@
 #pragma once
-#include "coap-datatypes.h"
+#include "../../shared/coap/coap-datatypes.h"
+
 
 /*Database-related methods*/
 
@@ -15,7 +16,7 @@ customer_tab_t* find_or_add_customer(customer_tab_t** head, int customer_id) {
 
     // Create new customer if not found
     customer_tab_t* new_customer = (customer_tab_t*)malloc(sizeof(customer_tab_t)); //alocate new space to a customer tab
-    new_customer->customer_id = customer_id; 
+    new_customer->customer_id = customer_id;
     new_customer->products = NULL;
     new_customer->next = *head; // Add to head of list
     *head = new_customer;
@@ -25,6 +26,7 @@ customer_tab_t* find_or_add_customer(customer_tab_t** head, int customer_id) {
 
 // Find the location of the customer product order entry or create one
 product_order_t* find_or_add_product(product_order_t** product_list, char* product_id) { //NOTE: first arg is the head of the linke dlist containing product data FOR A PREDETERMINED CUSTOMER
+
     product_order_t* temp = *product_list;
 
     while (temp != NULL) { //lets look thru every product the customer has scanned
@@ -44,22 +46,19 @@ product_order_t* find_or_add_product(product_order_t** product_list, char* produ
 }
 
 void modify_product_quantity(product_order_t* product, int quantity, int command, char* output_msg) {
-    //horrible bodging but ocmpiler was yelling
-    //char A[4]; sprintf(A, "A %s", '\0');
-    //char R[4]; sprintf(R, 'R%s', '\0');
-    //char D[4]; sprintf(D, 'D%s', '\0');
+    
     if (command == 0) {  // ADD 
         product->quantity += quantity;
         sprintf(output_msg, "ADD.ID%s%sQTY%d\n", product->product_id, TRANSX_SEP, product->quantity);
     }
-    else if (command== 1) {  // REMOVE
+    else if (command == 1) {  // REMOVE
         if (product->quantity > quantity) {
             product->quantity -= quantity;
-            
+
         }
         else { //make sure we dont get negative amount of outstanding items in cart 
             product->quantity = 0;
-            
+
         }
         sprintf(output_msg, "REM.ID%s%sQTY%d\n", product->product_id, TRANSX_SEP, product->quantity);
     }
@@ -67,10 +66,10 @@ void modify_product_quantity(product_order_t* product, int quantity, int command
         product->quantity = 0;
         sprintf(output_msg, "REM.ID%s%sQTY%d\n", product->product_id, TRANSX_SEP, product->quantity);//returned for user/client
     }
-    
+
 }
 
-/*
+
 // Remove customer and all their products
 void wipe_customer(customer_tab_t** head, int customer_id, char* output_msg) { //WIPE operation
     customer_tab_t* temp = *head;
@@ -102,7 +101,7 @@ void wipe_customer(customer_tab_t** head, int customer_id, char* output_msg) { /
     free(temp);
     sprintf(output_msg, "Customer %d wiped %s", customer_id, "\0"); //returned for user/client
 }
-*/
+
 /*Data transmisison related methods*/
 
 
@@ -125,7 +124,7 @@ static scan_data_t unpack_scan_payload(coap_message_t* request) { //turns raw PO
     //adjust based on return struct structure --> construct struct  
     sprintf(decoded_struct.customer_id, "%s", pos);
     pos = strtok(NULL, TRANSX_SEP);
-    sprintf(decoded_struct.product_id, "%s", pos );
+    sprintf(decoded_struct.product_id, "%s", pos);
     pos = strtok(NULL, TRANSX_SEP);
     sprintf(decoded_struct.quantity, "%s", pos);
     pos = strtok(NULL, TRANSX_SEP);
