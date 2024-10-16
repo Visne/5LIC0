@@ -16,7 +16,7 @@ void TagNode::UpdateNodeProduct(product_info_msg_t product_msg)
     product_.name = name;
 }
 
-scan_data_msg_t TagNode::GenerateScan()
+scan_data_msg_t TagNode::generateScan()
 {
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -32,7 +32,7 @@ scan_data_msg_t TagNode::GenerateScan()
 }
 
 /* Return time in s at which next tag scan will take place*/
-float TagNode::GetNextSendTime()
+float TagNode::getNextSendTime()
 {   
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -49,21 +49,19 @@ float TagNode::GetNextSendTime()
 
 // Lets the node send a scan submission wirelessly
 void TagNode::sendProductScan() {
+    if (product_.id == UNDEFINED_PRODUCT_ID) return; // Don't register scans if no product is assigned yet
     #ifdef DEBUG_NODE
     log("Calling scan callback", 0);
     #endif
-    if (product_.id == UNDEFINED_PRODUCT_ID) return; // Don't register scans if no product is assigned yet
     // Call the callback function
-    (*scan_cb_)(GenerateScan(), id_);
+    (*scan_cb_)(generateScan(), id_);
     awaiting_ACK = true;
 }
 
 // Handles receiving the ACK for a product scan on the node's end
 void TagNode::receiveScanAck() {
-    #ifdef DEBUG_NODE
     log("ACK received!", 0);
     awaiting_ACK = false;
-    #endif
 }
 
 bool TagNode::receiveProductUpdate(product_info_msg_t data) {
@@ -77,13 +75,19 @@ bool TagNode::receiveProductUpdate(product_info_msg_t data) {
 }
 
 void TagNode::sendProductUpdateReq() {
-    #ifdef DEBUG_NODE
-    log("Calling product update callback", 0);
-    #endif
+    log("Generated scan", 0);
     // Call the callback function
     (*product_update_cb_)(product_.id, id_);
 }
 
 void TagNode::sendProductUpdateAck() {
     log("Sending product update ACK", 0);
+}
+
+bool TagNode::wantsToApplyForClusterHead() {
+    return true;
+}
+
+void TagNode::sendClusterHeadVote() {
+    log("Node applied for cluster head", 0);
 }

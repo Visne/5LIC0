@@ -1,40 +1,6 @@
 #include "VirtualCANBus.hpp"
 #include <cstring>
 
-CANFDmessage_t VirtualCANBus::NewProductScanMsg(uint64_t node_id) {
-    CANFD_data_t payload;
-    payload.empty = true;
-    CANFDmessage_t scan_msg = {
-        PRODUCT_SCAN,
-        node_id,
-        cluster_head_id,
-        payload
-    };
-    return scan_msg;
-}
-CANFDmessage_t VirtualCANBus::NewProductUpdateACK(uint64_t node_id) {
-    CANFD_data_t payload;
-    payload.empty = true;
-    CANFDmessage_t scan_msg = {
-        PRODUCT_UPDATE_ACK,
-        node_id,
-        cluster_head_id,
-        payload
-    };
-    return scan_msg;
-}
-CANFDmessage_t VirtualCANBus::NewProductUpdateRequestMsg(uint64_t node_id) {
-    CANFD_data_t payload;
-    payload.empty = true;
-    CANFDmessage_t request_msg = {
-        REQUEST_PRODUCT_UPDATE,
-        node_id, // Must be to calling node, not cluster head, as callback is made with info from calling node
-        node_id,
-        payload
-    };
-    return request_msg;
-}
-
 float VirtualCANBus::simulateCANBus()
 {
     float time_to_sleep = -1;
@@ -70,9 +36,10 @@ float VirtualCANBus::simulateCANBus()
         }
         else
         {
+            bus_queue_.pop_front();
             // Double check if target node exists, if not, skip
             if (nodes_.find(next.msg.to) != nodes_.end()) {
-                bus_queue_.pop_front();
+                
                  // Execute CAN command presently sent on the bus
                 ProcessMessage(next.msg);
                 
@@ -92,6 +59,9 @@ float VirtualCANBus::simulateCANBus()
 /* Loops over current pending CAN messages queue, inserts new message where appropriate*/
 void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
 {
+    #ifdef DEBUG_BUS
+    log("Enqueueing message { from %d to %d, command: %d } at t=%f", msg.from, msg.to, msg.command, time_until);
+    #endif
     scheduled_bus_activity_t scheduled_message = {
         time_until,
         msg
@@ -147,7 +117,7 @@ bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, 
         nodes_[id] = new_node;
 
         // Set it to start generating scans
-        int t_next = new_node->GetNextSendTime();
+        int t_next = new_node->getNextSendTime();
         enqueueCANMessage(t_next, NewProductScanMsg(id));        
         return true;
     }
@@ -181,19 +151,42 @@ void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
 void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
 {
     switch (msg.command){
-        // Represents a "Product Scan event being received by the cluster head"
-        case PRODUCT_SCAN: {
-            if (nodes_.find(msg.to) != nodes_.end())
+        // Represents a message initiating election of a new cluster head
+        case CLUSTER_HEAD_ELECTION: {
+            // If an election message is posted, all eligible tag nodes will send an application on the bus
+            for (std::pair<uint64_t, TagNode *> node_: nodes_) {
+                TagNode *node = node_.second;
+                bool applying = node->wantsToApplyForClusterHead();
+                if (applying) {
+                    enqueueCANMessage(0.0, NewClusterHeadVote(node->GetNodeId()));
+                }
+            }
+            // Queue new election.
+            enqueueCANMessage(2, NewClusterHeadElection());
+        }
+        break;
+        // Represents a message to attempt to claim the task of cluster head
+        case CLUSTER_HEAD_VOTE: {
+            if (nodes_.find(msg.from) != nodes_.end())
             {
-                TagNode *node = nodes_[msg.to];
-                // Invoke the callback to simulate the data that would have been submitted to cluster head instead, such that it may be forwarded to the wireless network.
-                node->sendProductScan();
-
-                // Queue new Product Scan event for this node.
-                enqueueCANMessage(node->GetNextSendTime(), NewProductScanMsg(msg.to));
+                nodes_[msg.from]->sendClusterHeadVote();
             }
         }
         break;
+        // Represents a "Product Scan event" being received by the cluster head
+        case PRODUCT_SCAN: {
+            if (nodes_.find(msg.from) != nodes_.end())
+            {
+                TagNode *node = nodes_[msg.from];
+                // Invoke the callback to simulate the data that would have been submitted to cluster head instead, such that it may be forwarded to the wireless network.
+                node->sendProductScan();
+
+                // Queue new Product Scan event for this tag node.
+                enqueueCANMessage(node->getNextSendTime(), NewProductScanMsg(msg.from));
+            }
+        }
+        break;
+        // Represents a product scan submission acknowledgement put on the bus after having been received wirelessly by the cluster head.
         case SCAN_ACK: {
             if (nodes_.find(msg.to) != nodes_.end())
             {
@@ -201,7 +194,7 @@ void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
             }
         }
         break;
-        // Publish product update message on the bus for all nodes
+        // Publish product update message on the bus for all tag nodes.
         case PRODUCT_UPDATE:{
             for (std::pair<uint64_t, TagNode *> node_: nodes_) {
                 TagNode *node = node_.second;
@@ -212,6 +205,7 @@ void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
             }
         }
         break;
+        // Represents message put on the bus by an arbitrary tag node requesting updated info for its product id
         case REQUEST_PRODUCT_UPDATE: {
             if (nodes_.find(msg.to) != nodes_.end())
             {
@@ -220,7 +214,7 @@ void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
                 node->sendProductUpdateReq();
             }
         }
-        // Acknowledgement message coming from tag that it succesfully updated its product info
+        // Acknowledgement message coming from tag node that it succesfully updated its product info
         case PRODUCT_UPDATE_ACK: {
             if (nodes_.find(msg.to) != nodes_.end())
             {

@@ -30,7 +30,9 @@ typedef struct scan_data_msg {
 
 /* Enum abstracting CANIDs, priorities are assigned top (highest) to bottom (lowest)*/
 enum CAN_command {
-    PRODUCT_SCAN = 0,
+    CLUSTER_HEAD_ELECTION = 0,
+    CLUSTER_HEAD_VOTE,
+    PRODUCT_SCAN,
     SCAN_ACK,
     PRODUCT_UPDATE,
     PRODUCT_UPDATE_ACK,

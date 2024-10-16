@@ -66,12 +66,13 @@ public:
     void UpdateNodeProduct(product_info_msg_t product_info);
 
     /* Generate a suitable (partly random) scan message to be submitted on the net */
-    scan_data_msg_t GenerateScan();
+    scan_data_msg_t generateScan();
 
     /* Return time in s at which next tag scan will take place, populates fields of msg to have correct info on message*/
-    float GetNextSendTime();
+    float getNextSendTime();
 
     unsigned long GetProductId() { return product_.id; };
+    uint64_t GetNodeId() { return id_; };
 
 
     void sendProductScan();
@@ -79,6 +80,8 @@ public:
     bool receiveProductUpdate(product_info_msg_t data);
     void sendProductUpdateReq();
     void sendProductUpdateAck();
+    bool wantsToApplyForClusterHead();
+    void sendClusterHeadVote();
 };
 
 #endif // TAGNODE_HPP

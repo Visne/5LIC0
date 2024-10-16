@@ -10,11 +10,20 @@ extern "C" {
 
 static VirtualCANBus bus;
 
-/* Wrapper functions */
-extern "C" uint8_t add_node(uint64_t id, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t)) {
-    return bus.addNode(id, scanCallBack, priceUpdateCallBack) ? 1 : 0;
+extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t)) {
+    for (int i = 0; i < (int) nr_of_nodes; i++) {
+        int id = i+1;
+        if (bus.addNode(id, scanCallBack, priceUpdateCallBack)) {
+            bus.setProductId(id, id);
+        } else {
+            return 0;
+        }
+    }
+    bus.enqueueCANMessage(2, bus.NewClusterHeadElection());
+    return 1;
 }
 
+/* Wrapper functions */
 extern "C" uint8_t remove_node(uint64_t id) {
     return bus.removeNode(id) ? 1 : 0;
 }
@@ -52,10 +61,6 @@ extern "C" void send_can_message(CAN_command command, uint64_t target_node, CANF
     }
     // bus.PrintQueue();
     return;
-}
-
-extern "C" void set_product_id(uint64_t node_id, unsigned long product_id) {
-    bus.setProductId(node_id, product_id);
 }
 
 #endif

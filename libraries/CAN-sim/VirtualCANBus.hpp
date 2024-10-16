@@ -6,15 +6,16 @@
 #include <string>
 #include "TagNode.hpp"
 
-class VirtualCANBus {
+class VirtualCANBus
+{
 private:
-    
-    typedef struct scheduled_bus_activity {
+    typedef struct scheduled_bus_activity
+    {
         float time_until; // Time until this message should be sent in seconds
         CANFDmessage_t msg;
     } scheduled_bus_activity_t;
 
-    std::map<uint64_t, TagNode*> nodes_;
+    std::map<uint64_t, TagNode *> nodes_;
 
     std::list<scheduled_bus_activity_t> bus_queue_;
 
@@ -49,15 +50,71 @@ public:
 
     void ProcessMessage(CANFDmessage_t msg);
 
-    void PrintQueue(){
-        for (auto msg : bus_queue_) {
+    void PrintQueue()
+    {
+        for (auto msg : bus_queue_)
+        {
             log("{ from %d to %d, command: %d } at t=%f", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
         }
     };
 
-    CANFDmessage_t NewProductScanMsg(uint64_t node_id);
-    CANFDmessage_t NewProductUpdateACK(uint64_t node_id);
-    CANFDmessage_t NewProductUpdateRequestMsg(uint64_t node_id);
+    CANFDmessage_t NewProductScanMsg(uint64_t node_id)
+    {
+        CANFD_data_t payload;
+        payload.empty = true;
+        CANFDmessage_t scan_msg = {
+            PRODUCT_SCAN,
+            cluster_head_id,
+            node_id,
+            payload};
+        return scan_msg;
+    };
+    CANFDmessage_t NewProductUpdateACK(uint64_t node_id)
+    {
+        CANFD_data_t payload;
+        payload.empty = true;
+        CANFDmessage_t scan_msg = {
+            PRODUCT_UPDATE_ACK,
+            node_id,
+            cluster_head_id,
+            payload};
+        return scan_msg;
+    };
+    CANFDmessage_t NewProductUpdateRequestMsg(uint64_t node_id)
+    {
+        CANFD_data_t payload;
+        payload.empty = true;
+        CANFDmessage_t request_msg = {
+            REQUEST_PRODUCT_UPDATE,
+            node_id, // Must be to calling node, not cluster head, as callback is made with info from calling node
+            node_id,
+            payload};
+        return request_msg;
+    };
+    CANFDmessage_t NewClusterHeadElection()
+    {
+        CANFD_data_t payload;
+        payload.empty = true;
+        CANFDmessage_t request_msg = {
+            CLUSTER_HEAD_ELECTION,
+            cluster_head_id, 
+            cluster_head_id,
+            payload
+        };
+        return request_msg;
+    };
+    CANFDmessage_t NewClusterHeadVote(uint64_t node_id)
+        {
+        CANFD_data_t payload;
+        payload.empty = true;
+        CANFDmessage_t request_msg = {
+            CLUSTER_HEAD_VOTE,
+            cluster_head_id,
+            node_id,
+            payload
+        };
+        return request_msg;
+    };
 };
 
 #endif // VIRTUALCANBUS_HPP

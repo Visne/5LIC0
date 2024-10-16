@@ -62,7 +62,9 @@ typedef union CANFD_data {
 
 /* Enum abstracting CANIDs, priorities are assigned top (highest) to bottom (lowest)*/
 typedef enum CAN_command {
-    PRODUCT_SCAN = 0,
+    CLUSTER_HEAD_ELECTION = 0,
+    CLUSTER_HEAD_VOTE,
+    PRODUCT_SCAN,
     SCAN_ACK,
     PRODUCT_UPDATE,
     PRODUCT_UPDATE_ACK,
@@ -71,6 +73,7 @@ typedef enum CAN_command {
 
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
+extern uint8_t init_can_bus(uint64_t id, void (*scan_callback) (scan_data_msg_t, uint64_t), void (*product_update_callback) (unsigned long, uint64_t));
 extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t, uint64_t), void (*product_update_callback) (unsigned long, uint64_t));
 extern uint8_t remove_node(uint64_t  id);
 extern void send_can_message(CAN_command command, uint64_t target_node, CANFD_data_t payload);
@@ -93,7 +96,7 @@ void scan_callback(scan_data_msg_t data, uint64_t calling_node) {
     // TODO, remove this and replace with actual method call upon receiving in client node.
     CANFD_data_t msg_data;
     msg_data.empty = true;
-    printf("<-- THIS WOULD BE A NETWORK CALL TO SUBMIT SCAN -->\n");
+    // printf("<-- THIS WOULD BE A NETWORK CALL TO SUBMIT SCAN -->\n");
     send_can_message(SCAN_ACK, calling_node, msg_data);
 }
 
@@ -122,21 +125,21 @@ PROCESS_THREAD(node_process, ev, data)
   t_0 = clock_time();
   etimer_set(&timer, 5 * CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
-  for (int i = 0; i < NR_OF_CAN_NODES; i++) {
-    int id = i+1;
-    add_node(id, &scan_callback, &product_update_callback);
-    set_product_id(id, id);
-  }
+  int can_started = init_can_bus(NR_OF_CAN_NODES, &scan_callback, &product_update_callback);
 
-  while (1) {
-    float time_to_sleep = simulate_can_bus();
-    printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
-    etimer_set(&timer, time_to_sleep * CLOCK_SECOND);
-    float time = ((float)clock_time() - t_0)/1000.0;
-    float msgpersec = sendcount/time;
-    printf("Current load = %f msg/s at clock time: %f\n", msgpersec, time);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
-  }
+  if (can_started){
+      while (1) {
+          float time_to_sleep = simulate_can_bus();
+          // printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
+          etimer_set(&timer, time_to_sleep * CLOCK_SECOND);
+          // float time = ((float)clock_time() - t_0)/1000.0;
+          // float msgpersec = sendcount/time;
+          // printf("Current load = %f msg/s at clock time: %f\n", msgpersec, time);
+          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+      }
+  };
+
+  
 
   PROCESS_END();
 }
