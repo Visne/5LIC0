@@ -22,12 +22,12 @@ res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buff
 {
 
     //set up database
-    static product_info_t database[DB_SIZE];
+    static product_info_coap_msg_t database[DB_SIZE];
     init_test_database(database, (unsigned long long int)DB_SIZE);
 
     //unpacking (text) request from client into struct
     req_product_data_t request_data = unpack_get_payload(request); 
-    product_info_t queried_product = db_query_read(database, request_data.product_id); //returns the database entry for the product with this id
+    product_info_coap_msg_t queried_product = db_query_read(database, request_data.product_id); //returns the database entry for the product with this id
     
     //int db_id = atoi(request_data.product_id); //for now/FIXME : turns the product ID into an index into database
     //stores database data into char fields for later use

@@ -40,17 +40,15 @@ void scan_callback(scan_data_msg_t data, uint64_t calling_node) {
 
 void product_update_callback(unsigned long product_id, uint64_t calling_node) {
     printf("NODE#%ld displaying product %ld requests updated information.\n", calling_node, product_id);
-    char name[6] = "AUGURK";
-    unsigned short price = 12;
-    char *product_name = name;
-    unsigned short product_name_len = 6;
+    unsigned short price = 2 * product_id + 1;
     CAN_data_t msg_data;
-    msg_data.product_info = (product_info_coap_msg_t) {
+    msg_data.product_info = (product_info_msg_t) {
         product_id,
         price,
-        product_name,
-        product_name_len
+        "",
+        PRODUCT_DESCRIPT_LEN
     };
+    snprintf(msg_data.product_info.product_name, PRODUCT_DESCRIPT_LEN, "Product_%ld", product_id);
     printf("<-- THIS WOULD BE A NETWORK CALL TO FETCH DATA -->\n");
     send_can_message(PRODUCT_UPDATE, calling_node, msg_data);
 }
@@ -88,53 +86,54 @@ PROCESS_THREAD(client_process_v1b, ev, data)
     initialize_tsch_schedule();
 
     static coap_message_t request[1];      //defines blank request as pointer
-    etimer_set(&et, TOGGLE_INTERVAL* node_id * CLOCK_SECOND); //dummy timmer var, will be used to send db requests periodically
+  
     // Initialize CAN bus for this node, this will dictate the frequency and contents of db requests, as well as ACK delays
     int res = init_can_bus(NR_OF_CAN_NODES, &scan_callback, &product_update_callback, node_id);
     printf("Initialized CAN bus: %d\n", res);
 
     while (1) {
-        PROCESS_YIELD(); //surrenders hardware control to cooja/contiki scheduler
-        if (etimer_expired(&et)) { //if timer is finished, we'll send a price request
-            if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root)) {
-                // Convert root IPv6 address to string
-                char ip[UIPLIB_IPV6_MAX_STR_LEN];
-                uiplib_ipaddr_snprint(ip, sizeof(ip), &root);
+        if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root)) {
+            // Convert root IPv6 address to string
+            char ip[UIPLIB_IPV6_MAX_STR_LEN];
+            uiplib_ipaddr_snprint(ip, sizeof(ip), &root);
 
-                coap_endpoint_parse(ip, strlen(ip), &server_ep);
+            coap_endpoint_parse(ip, strlen(ip), &server_ep);
 
 
-                /* prepare request, TID is set by COAP_BLOCKING_REQUEST() */
-                coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0); //prepare
-                coap_set_header_uri_path(request, "test/scan"); //we'll poll the "product" ressource (at test/hello until i can figure out why any other uri doenst work)
+            /* prepare request, TID is set by COAP_BLOCKING_REQUEST() */
+            coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0); //prepare
+            coap_set_header_uri_path(request, "test/scan"); //we'll poll the "product" ressource (at test/hello until i can figure out why any other uri doenst work)
 
-                scan_data_coap_t scan; // a scan
-                //lets create a few database access commands (order 500 cigarettes)
-                sprintf(scan.customer_id, "%d", node_id * 55); //arbitrary
-                sprintf(scan.product_id, "%d", node_id * 100000);  //ID for cigarettes
-                sprintf(scan.quantity, "%d", 500); // 500
-                sprintf(scan.command, "%d", 0); //ADD to inventory
+            scan_data_coap_t scan; // a scan
+            //lets create a few database access commands (order 500 cigarettes)
+            sprintf(scan.customer_id, "%d", node_id * 55); //arbitrary
+            sprintf(scan.product_id, "%d", node_id * 100000);  //ID for cigarettes
+            sprintf(scan.quantity, "%d", 500); // 500
+            sprintf(scan.command, "%d", 0); //ADD to inventory
 
-                char outputmsg[TX_LEN_POST]; //we'll define a buffer containing text corresponding to the product information request --> for now can only realistically send text through coap
+            char outputmsg[TX_LEN_POST]; //we'll define a buffer containing text corresponding to the product information request --> for now can only realistically send text through coap
 
-                sprintf(outputmsg, "%s%s%s%s%s%s%s", scan.customer_id, TRANSX_SEP, scan.product_id, TRANSX_SEP,
+            sprintf(outputmsg, "%s%s%s%s%s%s%s", scan.customer_id, TRANSX_SEP, scan.product_id, TRANSX_SEP,
                         scan.quantity, TRANSX_SEP,
                         scan.command); //creating string containing ID:data (data currently blank)
-                //printf("%s\n",outputmsg);
-                coap_set_payload(request, (char *) &outputmsg,
+            //printf("%s\n",outputmsg);
+            coap_set_payload(request, (char *) &outputmsg,
                                  sizeof(outputmsg) - 1); //set the struct to be the payload
-                COAP_BLOCKING_REQUEST(&server_ep, request, client_chunk_handler); //send to server
+            COAP_BLOCKING_REQUEST(&server_ep, request, client_chunk_handler); //send to server
 
-                //printf("\n--Done--\n");
-                float time_to_sleep = simulate_can_bus();
-                printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
-                etimer_set(&et, time_to_sleep * CLOCK_SECOND);
-                // float time = ((float)clock_time() - t_0)/1000.0;
-                // float msgpersec = sendcount/time;
-                // printf("Current load = %f msg/s at clock time: %f\n", msgpersec, time);
-                update_visualization(clock_time());
-            }
+            //printf("\n--Done--\n");
+            float time_to_sleep = simulate_can_bus();
+            // printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
+            etimer_set(&et, time_to_sleep * CLOCK_SECOND);
+            // float time = ((float)clock_time() - t_0)/1000.0;
+            // float msgpersec = sendcount/time;
+            // printf("Current load = %f msg/s at clock time: %f\n", msgpersec, time);
+            update_visualization(clock_time());
+        } else {
+            printf("Sleeping\n");
+            etimer_set(&et, 1 * CLOCK_SECOND);
         }
+        PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
 
     PROCESS_END();

@@ -2,14 +2,14 @@
 #include "coap-datatypes.h"
 #include "coap-engine.h"
 
-product_info_t decode_product_response(coap_message_t* response) {
+product_info_coap_msg_t decode_product_response(coap_message_t* response) {
 
 	const uint8_t* chunk;
 	char responsebuffer[TX_LEN_REQ];
 	int len = coap_get_payload(response, &chunk);
 	sprintf(responsebuffer, "%.*s", len, (char*)chunk);
 
-    product_info_t product_data;
+    product_info_coap_msg_t product_data;
 
     char* pos; //pointer to seperator element
     pos = strtok(responsebuffer, TRANSX_SEP); //find first (currently only) seperator

@@ -1,7 +1,7 @@
 #pragma once
 #include "coap-datatypes.h"
 
-void init_test_database(product_info_t* db, unsigned long long int size) { //initialized database with testing data
+void init_test_database(product_info_coap_msg_t* db, unsigned long long int size) { //initialized database with testing data
     for (unsigned long long i = 0; i < size; i++) {
         sprintf(db[i].product_id, "%llu, %s", i+1, "\0"); //EAN13 product ID
         float price = (2*i + 2) * (0.115) * 100;
@@ -36,7 +36,7 @@ static req_product_data_t unpack_get_payload(coap_message_t* request) { //turns 
     return decoded_struct; //return completed struct
 }
 
-product_info_t db_query_read(product_info_t* db, char* product_id) { //searches initialized database for matching EAN13 product id and returns all info
+product_info_coap_msg_t db_query_read(product_info_coap_msg_t* db, char* product_id) { //searches initialized database for matching EAN13 product id and returns all info
     char* pEnd1;
     char* pEnd2;
     unsigned char product_found = 0; 
@@ -47,7 +47,7 @@ product_info_t db_query_read(product_info_t* db, char* product_id) { //searches 
     //for string to llu conversion
     searched_product_id = strtoull(product_id, &pEnd1, 10); //convert string rerpesentation of request EAD code into numerical one
     unsigned long long i = 0; //index into database to be iterated with
-    product_info_t db_product; //blank product information sheet that we'll send out
+    product_info_coap_msg_t db_product; //blank product information sheet that we'll send out
     
     while (product_found == 0) { //until found in database
         if (i >= DB_SIZE) { //no such element in DB
