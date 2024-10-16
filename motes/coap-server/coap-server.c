@@ -12,7 +12,7 @@
 //extern coap_resource_t res_tagquery;
 extern coap_resource_t res_scan;
 extern coap_resource_t res_tagquery;
-
+extern coap_resource_t res_product_update;
 
 PROCESS(server_coap_v1b, "server process with product query and customer scanning");
 AUTOSTART_PROCESSES(&server_coap_v1b);
@@ -35,8 +35,9 @@ PROCESS_THREAD(server_coap_v1b, ev, data)
 	//etimer_set(&et, TOGGLE_INTERVAL * CLOCK_SECOND);
 	coap_activate_resource(&res_tagquery, QUERY_URI);
 	coap_activate_resource(&res_scan, SCAN_URI);
-	
-		
-	while (1) { PROCESS_WAIT_EVENT();} //loops and waits for client price requests
+    coap_activate_resource(&res_product_update, "product/update");
+
+    // TODO: I don't think this while loop is necessary
+    while (1) { PROCESS_WAIT_EVENT();} //loops and waits for client price requests
 	PROCESS_END();
 }
