@@ -79,6 +79,7 @@ extern uint8_t remove_node(uint64_t  id);
 extern void send_can_message(CAN_command command, uint64_t target_node, CANFD_data_t payload);
 extern float simulate_can_bus();
 extern void set_product_id(uint64_t node_id, unsigned long product_id);
+extern void update_visualization(int clock);
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
 AUTOSTART_PROCESSES(&node_process);
@@ -130,11 +131,12 @@ PROCESS_THREAD(node_process, ev, data)
   if (can_started){
       while (1) {
           float time_to_sleep = simulate_can_bus();
-          // printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
+          printf("Simulated CAN bus, %f seconds until next message\n", time_to_sleep);
           etimer_set(&timer, time_to_sleep * CLOCK_SECOND);
           // float time = ((float)clock_time() - t_0)/1000.0;
           // float msgpersec = sendcount/time;
           // printf("Current load = %f msg/s at clock time: %f\n", msgpersec, time);
+          update_visualization(clock_time());
           PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
       }
   };

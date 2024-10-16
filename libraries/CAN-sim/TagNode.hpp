@@ -73,7 +73,9 @@ public:
 
     unsigned long GetProductId() { return product_.id; };
     uint64_t GetNodeId() { return id_; };
-
+    unsigned long GetProductPrice() { return product_.price; };
+    std::string GetProductName() { return product_.name; };
+    bool GetAwaitingACK() { return awaiting_ACK; };
 
     void sendProductScan();
     void receiveScanAck();

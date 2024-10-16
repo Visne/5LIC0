@@ -4,6 +4,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <fstream>
 #include "TagNode.hpp"
 
 class VirtualCANBus
@@ -18,6 +19,10 @@ private:
     std::map<uint64_t, TagNode *> nodes_;
 
     std::list<scheduled_bus_activity_t> bus_queue_;
+
+    std::ofstream myfile_;  // Create an output file stream object
+    std::string vis_file_;
+    bool visualizing_ = false;
 
     // Basic logging functionality as std::format did not work (C++11)
     // Taken from stackoverflow: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
@@ -36,27 +41,38 @@ private:
     }
 
 public:
+    VirtualCANBus() {
+    }
+
+    ~VirtualCANBus() {
+        if (myfile_.is_open()) {
+            myfile_.close();
+        }
+        
+    }
+
     uint64_t cluster_head_id;
 
+    // CAN BUS FUNCTIONS
+    /* Add tag node to the bus */
     bool addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, uint64_t), void (*price_update_cb)(unsigned long, uint64_t));
+    /* Remove tag node from the bus */
     bool removeNode(const uint64_t id);
-
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
     float simulateCANBus();
     /* Schedules a CAN message to be sent in time_until s*/
     void enqueueCANMessage(float time_until, CANFDmessage_t msg);
-
-    void setProductId(uint64_t node_id, unsigned long product_id);
-
+    /* Method used to invoke appropriate actions at corresponding tag nodes when given message is up next on the bus */
     void ProcessMessage(CANFDmessage_t msg);
+    
+    // VISUALIZATION FUNCTIONS
+    void openVisualizationFile(int shelf_id);
+    void updateVisualization(int clock);
 
-    void PrintQueue()
-    {
-        for (auto msg : bus_queue_)
-        {
-            log("{ from %d to %d, command: %d } at t=%f", msg.msg.from, msg.msg.to, msg.msg.command, msg.time_until);
-        }
-    };
+
+    // HELPER FUNCTIONS
+    /* Sets a tag node's new product id (as if employee is setting it) and fires corresponding request for product info on the network */
+    void setProductId(uint64_t node_id, unsigned long product_id);
 
     CANFDmessage_t NewProductScanMsg(uint64_t node_id)
     {
@@ -114,6 +130,20 @@ public:
             payload
         };
         return request_msg;
+    };
+
+    // Function for padding strings
+    std::string pad_to_length(const std::string& input, size_t n) {
+        if (input.length() >= n) {
+            return input.substr(0, n);  // Truncate if the input is longer than n
+        }
+        return input + std::string(n - input.length(), ' ');  // Pad with spaces
+    };
+
+    // Function for padding integers (converts int to string)
+    std::string pad_to_length(unsigned long input, size_t n) {
+        std::string str_input = std::to_string(input);  // Convert int to string
+        return pad_to_length(str_input, n);  // Reuse string padding function
     };
 };
 

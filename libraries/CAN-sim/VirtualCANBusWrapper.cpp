@@ -19,6 +19,8 @@ extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_
             return 0;
         }
     }
+    bus.openVisualizationFile(0);
+    bus.updateVisualization(0);
     bus.enqueueCANMessage(2, bus.NewClusterHeadElection());
     return 1;
 }
@@ -59,8 +61,10 @@ extern "C" void send_can_message(CAN_command command, uint64_t target_node, CANF
         default:
             break;
     }
-    // bus.PrintQueue();
     return;
 }
 
+extern "C" void update_visualization(int clock) {
+    bus.updateVisualization(clock);
+}
 #endif

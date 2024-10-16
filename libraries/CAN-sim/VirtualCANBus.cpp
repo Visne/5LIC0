@@ -227,3 +227,58 @@ void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
     }
     return;
 }
+
+void VirtualCANBus::openVisualizationFile(int shelf_id) {
+     {
+        vis_file_ = CLUSTER_VIS_DIRECTORY "shelf_" + std::to_string(shelf_id) + ".txt";
+        myfile_.open(vis_file_);  // Open a file or create it if it doesn't exist
+
+        // Check if the file opened successfully
+        if (myfile_.is_open()) {
+            visualizing_ = true;
+            log("File written successfully!", 0);
+        } else {
+            log("Unable to open visualization file!", 0);
+        }
+    }
+}
+
+void VirtualCANBus::updateVisualization(int clock)  {
+    if (!visualizing_) return;
+
+    myfile_.open(vis_file_);
+    if(myfile_.is_open()) {
+        #define MSEP_EDGE   "--+--"
+        #define LSEP_EDGE   "+--"
+        #define RSEP_EDGE   "--+"
+        #define MSEP        "  |  "
+        #define LSEP        "|  "
+        #define RSEP        "  |"
+        int columnwidth = 16;
+        std::string hor_line;
+        for (int i = 0; i < columnwidth; i++) {
+            hor_line += "-";
+        }
+        //                      NODE ID                  PROD ID                  PRICE                    NAME                     AWAITING ACK
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP << pad_to_length("NODE ID", columnwidth) << MSEP << pad_to_length("PROD ID", columnwidth) << MSEP << pad_to_length("PRICE", columnwidth) << MSEP << pad_to_length("NAME", columnwidth) << MSEP << pad_to_length("SCAN STATUS", columnwidth) << RSEP"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        for (std::pair<uint64_t, TagNode *> node_: nodes_) {
+            TagNode *node = node_.second;
+            myfile_ << LSEP 
+            << pad_to_length(node->GetNodeId(), columnwidth) << MSEP 
+            << pad_to_length(node->GetProductId(), columnwidth) << MSEP
+            << pad_to_length(node->GetProductPrice(), columnwidth) << MSEP
+            << pad_to_length(node->GetProductName(), columnwidth) << MSEP
+            << pad_to_length(node->GetAwaitingACK()? "AWAITING ACK" : "IDLE", columnwidth) << RSEP"\n";
+        }
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << "\n\n";
+        myfile_ << "Clock: " << clock;
+        myfile_.close();
+    } else {
+        log("File not open!", 0);
+    }
+
+    
+}
