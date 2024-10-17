@@ -76,7 +76,7 @@ public:
 
     CANFDmessage_t NewProductScanMsg(uint64_t node_id)
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
         CANFDmessage_t scan_msg = {
             PRODUCT_SCAN,
@@ -87,7 +87,7 @@ public:
     };
     CANFDmessage_t NewProductUpdateACK(uint64_t node_id)
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
         CANFDmessage_t scan_msg = {
             PRODUCT_UPDATE_ACK,
@@ -98,7 +98,7 @@ public:
     };
     CANFDmessage_t NewProductUpdateRequestMsg(uint64_t node_id)
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
         CANFDmessage_t request_msg = {
             REQUEST_PRODUCT_UPDATE,
@@ -109,7 +109,7 @@ public:
     };
     CANFDmessage_t NewClusterHeadElection()
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
         CANFDmessage_t request_msg = {
             CLUSTER_HEAD_ELECTION,
@@ -121,7 +121,7 @@ public:
     };
     CANFDmessage_t NewClusterHeadVote(uint64_t node_id)
         {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
         CANFDmessage_t request_msg = {
             CLUSTER_HEAD_VOTE,

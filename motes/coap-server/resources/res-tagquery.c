@@ -13,15 +13,21 @@ RESOURCE(res_tagquery,
 
 static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
+<<<<<<< Updated upstream
     // Set up database
     static product_info_t database[DB_SIZE];
     init_test_database(database, DB_SIZE);
+=======
+>>>>>>> Stashed changes
 
-    req_product_data_t request_data = *(req_product_data_t*) request->payload;
+    //set up database
+    static product_info_coap_msg_t database[DB_SIZE];
+    init_test_database(database, (unsigned long long int)DB_SIZE);
 
-    // Returns the database entry for the product with this ID
-    product_info_t queried_product = db_query_read(database, request_data.product_id);
-
+    //unpacking (text) request from client into struct
+    req_product_data_t request_data = unpack_get_payload(request); 
+    product_info_coap_msg_t queried_product = db_query_read(database, request_data.product_id); //returns the database entry for the product with this id
+    
     //int db_id = atoi(request_data.product_id); //for now/FIXME : turns the product ID into an index into database
     //stores database data into char fields for later use
     //char database_price[16], database_id[16];

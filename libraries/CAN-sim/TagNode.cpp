@@ -10,8 +10,7 @@ void TagNode::UpdateNodeProduct(product_info_msg_t product_msg)
 {
     log("Updating price from %d to %d", product_.price, product_msg.price);
     product_.price = product_msg.price;
-    char name[256];
-    memcpy(&name, product_msg.product_name, product_msg.product_name_len);
+    std::string name(product_msg.product_name);
     log("Updating name from %s to %s", product_.name, name);
     product_.name = name;
 }
@@ -36,7 +35,7 @@ float TagNode::getNextSendTime()
 {   
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(1000, 3000);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(MIN_TIME, MAX_TIME);
 
     float t_next = dist(rng) / 1000.0; // Used as ms
     // Not randomized for now, just send 2s to get 8 messages/s on average
@@ -66,22 +65,23 @@ void TagNode::receiveScanAck() {
 
 bool TagNode::receiveProductUpdate(product_info_msg_t data) {
     if (product_.id == data.product_id) {
-        char name[16];
+        char name[PRODUCT_DESCRIPT_LEN];
         memcpy(name, data.product_name, data.product_name_len);
         log("New product info: { %ld, %d, %s }", data.product_id, data.price, name);
+        UpdateNodeProduct(data);
         return true;
     }
     return false;
 }
 
 void TagNode::sendProductUpdateReq() {
-    log("Generated scan", 0);
+    // log("Generated scan", 0);
     // Call the callback function
     (*product_update_cb_)(product_.id, id_);
 }
 
 void TagNode::sendProductUpdateAck() {
-    log("Sending product update ACK", 0);
+    // log("Sending product update ACK", 0);
 }
 
 bool TagNode::wantsToApplyForClusterHead() {
@@ -89,5 +89,5 @@ bool TagNode::wantsToApplyForClusterHead() {
 }
 
 void TagNode::sendClusterHeadVote() {
-    log("Node applied for cluster head", 0);
+    // log("Node applied for cluster head", 0);
 }

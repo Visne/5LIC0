@@ -26,6 +26,7 @@ typedef struct {
 
 // Datastructure used for transmitting product information requests
 typedef struct {
+<<<<<<< Updated upstream
     // EAN-13 product ID
     uint64_t product_id;
     char blankbuffer[PRODUCT_DESCRIPT_LEN];
@@ -66,3 +67,8 @@ typedef struct customer_tab_t {
     // For dynamic list of customers --> new customers are added here
     struct customer_tab_t *next;
 } customer_tab_t;
+=======
+    unsigned long customer_id;
+    unsigned long long product_id;
+} scan_data_coap_t;
+>>>>>>> Stashed changes
