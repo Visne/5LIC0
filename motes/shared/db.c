@@ -8,32 +8,33 @@
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 // Initialize database with testing data
-void init_test_database(product_info_t* db, uint64_t size) {
+void init_test_database(product_t* db, uint64_t size) {
     for (unsigned long long i = 0; i < size; i++) {
-        db[i].product_id = i + 1;
-        db[i].product_price = (2 * i + 2) * (0.115) * 100;
-        sprintf(db[i].product_description, "Highly sought commoditity n %llu", i);
+        db[i].id = i + 1;
+        db[i].price = (2 * i + 2) * (0.115) * 100;
+        sprintf(db[i].description, "Highly sought commoditity n %llu", i);
         db[i].is_stocked = 1;
     }
 }
 
 // Searches initialized database for matching EAN-13 product ID and returns info
-product_info_t db_query_read(product_info_t* db, uint64_t product_id) {
+product_t db_query_read(product_t* db, ean13_t product_id) {
     bool product_found = false;
 
     unsigned long long i = 0; //index into database to be iterated with
-    product_info_t db_product; //blank product information sheet that we'll send out
 
     while (product_found == 0) { //until found in database
         if (i >= DB_SIZE) { //no such element in DB
-            db_product.product_id = product_id;
-            db_product.product_price = 0;
-            sprintf(db_product.product_description, "NA");
-            db_product.is_stocked = 0;
+            product_t db_product = {
+                product_id,
+                0,
+                false,
+                "NA",
+            };
             return db_product;
         }
 
-        if (db[i].product_id == product_id) {//found match
+        if (db[i].id == product_id) {//found match
             product_found = true;
         }
 
@@ -41,15 +42,18 @@ product_info_t db_query_read(product_info_t* db, uint64_t product_id) {
         i = i + 1;
     }
 
-    db_product.product_id = product_id;
-    db_product.product_price = db[i-1].product_price;
-    sprintf(db_product.product_description, "%s", db[i - 1].product_description);
-    db_product.is_stocked = 1;
+    product_t db_product = {
+        product_id,
+        db[i - 1].price,
+        true,
+    };
+    strcpy(db_product.description, db[i - 1].description);
+
     return db_product;
 }
 
 // Find the location of the customer order sheet or create one
-customer_tab_t* find_or_add_customer(customer_tab_t** head, uint32_t customer_id) {
+customer_tab_t* find_or_add_customer(customer_tab_t** head, customer_t customer_id) {
     customer_tab_t* temp = *head; //start at begining of linked list
 
     while (temp != NULL) { //look thru every customer in database until match, or end of file
@@ -92,7 +96,7 @@ void modify_product_quantity(product_order_t* product, uint16_t quantity, scan_t
     switch (command) {
         case ADD:
             product->quantity += quantity;
-            LOG_INFO("ADD ID: %hu, QTY: %d\n", product->product_id, product->quantity);
+            LOG_INFO("ADD ID: %lu, QTY: %d\n", product->product_id, product->quantity);
             break;
         case REMOVE:
             if (product->quantity > quantity) {
@@ -101,11 +105,11 @@ void modify_product_quantity(product_order_t* product, uint16_t quantity, scan_t
                 // Make sure we don't get negative amount of outstanding items in cart
                 product->quantity = 0;
             }
-            LOG_INFO("REMOVE ID: %hu, QTY: %d\n", product->product_id, product->quantity);
+            LOG_INFO("REMOVE ID: %lu, QTY: %d\n", product->product_id, product->quantity);
             break;
         case DELETE:
             product->quantity = 0;
-            LOG_INFO("DELETE ID: %hu, QTY: %d\n", product->product_id, product->quantity);
+            LOG_INFO("DELETE ID: %lu, QTY: %d\n", product->product_id, product->quantity);
             break;
         case WIPE:
             break;
@@ -113,7 +117,7 @@ void modify_product_quantity(product_order_t* product, uint16_t quantity, scan_t
 }
 
 // Remove customer and all their products
-void wipe_customer(customer_tab_t **head, uint32_t customer_id) {
+void wipe_customer(customer_tab_t **head, customer_t customer_id) {
     customer_tab_t* temp = *head;
     customer_tab_t* prev = NULL;
 
