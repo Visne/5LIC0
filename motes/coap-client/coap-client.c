@@ -1,13 +1,13 @@
 #include "contiki.h"
 #include "contiki-net.h"
-#include "coap-engine.h"
+#include "coap-observe-client.h"
 #include "coap-blocking-api.h"
 #include "sys/node-id.h"
 #include "sys/log.h"
 
-#include "../shared/coap/coap-datatypes.h"
-#include "../shared/coap/utility.h"
-#include "../shared/custom-schedule.h"
+#include "datatypes.h"
+#include "utility.h"
+#include "custom-schedule.h"
 
 #define LOG_MODULE "Client"
 #define LOG_LEVEL LOG_LEVEL_DBG
@@ -16,27 +16,42 @@ PROCESS(client, "Client process with customer scan");
 AUTOSTART_PROCESSES(&client);
 
 void scan_handler(coap_message_t *response) {
-    const uint8_t *chunk;
-
     if (response == NULL) {
-        LOG_ERR("Request timed out\n");
-        return;
+        LOG_ERR("Scan request timed out\n");
     }
-
-    int len = coap_get_payload(response, &chunk);
-
-    LOG_INFO("|%.*s\n", len, (char *) chunk);
 }
 
 void query_handler(coap_message_t *response) {
     if (response == NULL) {
-        LOG_ERR("Request timed out\n");
+        LOG_ERR("Query request timed out\n");
         return;
     }
 
     product_info_t product = *(product_info_t*) response->payload;
+    LOG_INFO("Query: %s (ID: %lu, price: %hu cents)\n", product.product_description, product.product_id, product.product_price);
+}
 
-    LOG_INFO("|%s %s %s %s\n", product.product_id, product.product_price, product.product_description, product.is_stocked);
+void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag) {
+    // FIXME: For whatever reason this function gets called even when the notification happens on another endpoint
+
+    //    int len = 0;
+    //    const uint8_t *payload = NULL;
+
+    //LOG_INFO("Notification on URI: %s\n", subject->url);
+    if (notification) {
+        //len = coap_get_payload(notification, &payload);
+    }
+    switch (flag) {
+        case NOTIFICATION_OK:
+        case OBSERVE_OK:
+            //LOG_INFO("OK: %*s\n", len, (char *) payload);
+            break;
+        case OBSERVE_NOT_SUPPORTED:
+        case ERROR_RESPONSE_CODE:
+        case NO_REPLY_FROM_SERVER:
+            LOG_ERR("%d\n", flag);
+            break;
+    }
 }
 
 PROCESS_THREAD(client, ev, data) {
@@ -65,10 +80,10 @@ PROCESS_THREAD(client, ev, data) {
 
         coap_endpoint_parse(ip, strlen(ip), &server_ep);
 
+        coap_obs_request_registration(&server_ep, UPDATE_URI, notification_callback, NULL);
+
         // If even node ID, send scans
         if (node_id % 2 == 0) {
-            LOG_INFO("Scan\n");
-
             // Create payload for a scan for product id <node_id * 10000> and client id <node_id> and ADD 500 of the item
             scan_data_t scan = {
                 node_id,
@@ -82,11 +97,9 @@ PROCESS_THREAD(client, ev, data) {
             // Send
             COAP_BLOCKING_REQUEST(&server_ep, &request, scan_handler);
         } else {
-            LOG_INFO("Query\n");
-
             // Create payload for a product info query for product id <node_id * 10000>
             req_product_data_t product;
-            sprintf(product.product_id, "%hu", node_id);
+            product.product_id = node_id;
             snprintf(product.blankbuffer, sizeof(product.blankbuffer), "Query info"); //can be changed depending on what we need
 
             request = coap_create_request(COAP_GET, QUERY_URI, COAP_TYPE_CON, &product, sizeof(product));

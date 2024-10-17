@@ -1,3 +1,4 @@
 #pragma once
 
 #define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
+#define COAP_OBSERVE_CLIENT 1

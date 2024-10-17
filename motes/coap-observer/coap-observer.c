@@ -14,11 +14,11 @@ static coap_observee_t *obs;
 PROCESS(coap_observer, "CoAP observer");
 AUTOSTART_PROCESSES(&coap_observer);
 
-static void notification_callback(coap_observee_t *obse, void *notification, coap_notification_flag_t flag) {
+static void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag) {
     int len = 0;
     const uint8_t *payload = NULL;
 
-    LOG_INFO("Notification on URI: %s\n", obse->url);
+    LOG_INFO("Notification on URI: %s\n", subject->url);
     if (notification) {
         len = coap_get_payload(notification, &payload);
     }

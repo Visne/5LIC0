@@ -2,7 +2,7 @@ CONTIKI_PROJECT = coap-client
 MAKE_MAC = MAKE_MAC_TSCH
 PLATFORMS_EXCLUDE = sky z1
 MODULES += os/net/app-layer/coap
-MODULES_REL += ./resources ../shared ../shared/coap
+MODULES_REL += ./resources ../shared
 
 all: $(CONTIKI_PROJECT)
 
