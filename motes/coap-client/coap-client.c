@@ -15,6 +15,8 @@
 PROCESS(client, "Client process with customer scan");
 AUTOSTART_PROCESSES(&client);
 
+static coap_observee_t *obs;
+
 void scan_handler(coap_message_t *response) {
     if (response == NULL) {
         LOG_ERR("Scan request timed out\n");
@@ -32,24 +34,24 @@ void query_handler(coap_message_t *response) {
 }
 
 void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag) {
-    // FIXME: For whatever reason this function gets called even when the notification happens on another endpoint
+    int len = 0;
+    const uint8_t *payload = NULL;
 
-    //    int len = 0;
-    //    const uint8_t *payload = NULL;
-
-    //LOG_INFO("Notification on URI: %s\n", subject->url);
+    LOG_INFO("Notification on URI: %s\n", subject->url);
     if (notification) {
-        //len = coap_get_payload(notification, &payload);
+        len = coap_get_payload(notification, &payload);
     }
     switch (flag) {
         case NOTIFICATION_OK:
         case OBSERVE_OK:
-            //LOG_INFO("OK: %*s\n", len, (char *) payload);
+            LOG_INFO("OK: %*s\n", len, (char *) payload);
             break;
         case OBSERVE_NOT_SUPPORTED:
         case ERROR_RESPONSE_CODE:
         case NO_REPLY_FROM_SERVER:
-            LOG_ERR("%d\n", flag);
+            // TODO: More descriptive log message
+            LOG_ERR("Something went wrong: %d\n", flag);
+            obs = NULL;
             break;
     }
 }
@@ -71,6 +73,7 @@ PROCESS_THREAD(client, ev, data) {
         etimer_reset(&timer);
 
         if (!NETSTACK_ROUTING.node_is_reachable() || !NETSTACK_ROUTING.get_root_ipaddr(&root)) {
+            obs = NULL;
             continue;
         }
 
@@ -80,7 +83,9 @@ PROCESS_THREAD(client, ev, data) {
 
         coap_endpoint_parse(ip, strlen(ip), &server_ep);
 
-        coap_obs_request_registration(&server_ep, UPDATE_URI, notification_callback, NULL);
+        if (obs == NULL) {
+            obs = coap_obs_request_registration(&server_ep, UPDATE_URI, notification_callback, NULL);
+        }
 
         // If even node ID, send scans
         if (node_id % 2 == 0) {
