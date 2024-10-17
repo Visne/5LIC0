@@ -57,7 +57,7 @@ float VirtualCANBus::simulateCANBus()
 }
 
 /* Loops over current pending CAN messages queue, inserts new message where appropriate*/
-void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
+void VirtualCANBus::enqueueCANMessage(float time_until, CANmessage_t msg)
 {
     #ifdef DEBUG_BUS
     log("Enqueueing message { from %d to %d, command: %d } at t=%f", msg.from, msg.to, msg.command, time_until);
@@ -148,7 +148,7 @@ void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
 
 // Messages on the bus meant to invoke actions are not explicitly listened to by TagNode objects or the cluster head (cooja mote).
 // Rather, callbacks to particular cooja mote functions are provided to TagNodes on creation, and invoked when the corresponding CAN message is up next on the bus.
-void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
+void VirtualCANBus::ProcessMessage(CANmessage_t msg)
 {
     switch (msg.command){
         // Represents a message initiating election of a new cluster head

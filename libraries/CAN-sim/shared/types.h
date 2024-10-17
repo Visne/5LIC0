@@ -45,17 +45,17 @@ typedef enum {
 } CAN_command;
 
 /* Union abstracting possible contents of data field of CANFD message */
-typedef union CANFD_data {
+typedef union CAN_data {
     product_info_msg_t product_info;
     bool empty; // Used to indicate empty message (ACK)
-} CANFD_data_t;
+} CAN_data_t;
 
 /* Model of CAN FD frame */
-typedef struct CANFDmessage {
+typedef struct CANmessage {
     CAN_command command; // 29 bits in real life equivalent, enum assumed to fit in this size
     uint64_t to;         // Node that is to execute given command
     uint64_t from;         // Node that sent given command (important for simulating CAN)
-    CANFD_data_t data;            // Pointer to the callback function for the given command
-} CANFDmessage_t;
+    CAN_data_t data;            // Pointer to the callback function for the given command
+} CANmessage_t;
 
 #endif

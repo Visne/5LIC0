@@ -20,18 +20,7 @@ RESOURCE(res_scan,
 
 static void res_post_handler(coap_message_t* request, coap_message_t* response, uint8_t* buffer, uint16_t preferred_size, int32_t* offset)
 {
-<<<<<<< Updated upstream
     scan_data_t request_data = *(scan_data_t*) request->payload;
-=======
-
-    //unpacking (text) request from client into struct
-    scan_data_coap_t request_data = unpack_scan_payload(request);//get struct corresponding to customer scan request
-    //convert to appropriate and more usable forms
-    int scan_customer_id = atoi(request_data.product_id);
-    int scan_product_quantity = atoi(request_data.quantity);
-    char scan_product_id[PRODUCT_ID_LEN];
-    sprintf(scan_product_id, "%s", request_data.product_id);
->>>>>>> Stashed changes
 
     // Updating database
     customer_tab_t* customer = find_or_add_customer(&customers, request_data.customer_id);

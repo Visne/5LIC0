@@ -26,7 +26,6 @@ typedef struct {
 
 // Datastructure used for transmitting product information requests
 typedef struct {
-<<<<<<< Updated upstream
     // EAN-13 product ID
     uint64_t product_id;
     char blankbuffer[PRODUCT_DESCRIPT_LEN];

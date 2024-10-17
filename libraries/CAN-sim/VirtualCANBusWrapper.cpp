@@ -38,7 +38,7 @@ extern "C" float simulate_can_bus() {
 extern "C" void send_can_message(CAN_command command, uint64_t target_node, CAN_data_t payload) {
     switch (command) {
         case SCAN_ACK: {
-            CANFDmessage_t msg = {
+            CANmessage_t msg = {
                 SCAN_ACK,
                 target_node,
                 bus.cluster_head_id,
@@ -49,7 +49,7 @@ extern "C" void send_can_message(CAN_command command, uint64_t target_node, CAN_
             break;
         }
         case PRODUCT_UPDATE: {
-            CANFDmessage_t msg = {
+            CANmessage_t msg = {
                 PRODUCT_UPDATE,
                 target_node,
                 bus.cluster_head_id,
