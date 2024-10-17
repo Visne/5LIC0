@@ -43,27 +43,25 @@ product_order_t* find_or_add_product(product_order_t** product_list, uint16_t pr
     return new_product;
 }
 
-void modify_product_quantity(product_order_t* product, int quantity, int command, char* output_msg) {
-    if (command == 0) {  // ADD 
+void modify_product_quantity(product_order_t* product, uint16_t quantity, scan_type_t command, char* output_msg) {
+    if (command == ADD) {
         product->quantity += quantity;
         sprintf(output_msg, "ADD.ID%hu%sQTY%d", product->product_id, TRANSX_SEP, product->quantity);
-    } else if (command == 1) {  // REMOVE
+    } else if (command == REMOVE) {
         if (product->quantity > quantity) {
             product->quantity -= quantity;
-
         } else { //make sure we dont get negative amount of outstanding items in cart
             product->quantity = 0;
         }
         sprintf(output_msg, "REM.ID%hu%sQTY%d", product->product_id, TRANSX_SEP, product->quantity);
-    } else if (command == 2) {  // DELETE product entry
+    } else if (command == DELETE) {
         product->quantity = 0;
         sprintf(output_msg, "REM.ID%hu%sQTY%d", product->product_id, TRANSX_SEP, product->quantity);//returned for user/client
     }
 }
 
-
 // Remove customer and all their products
-void wipe_customer(customer_tab_t** head, int customer_id, char* output_msg) { //WIPE operation
+void wipe_customer(customer_tab_t **head, int customer_id) {
     customer_tab_t* temp = *head;
     customer_tab_t* prev = NULL;
 
@@ -85,11 +83,10 @@ void wipe_customer(customer_tab_t** head, int customer_id, char* output_msg) { /
     // Remove customer from list
     if (prev != NULL) {
         prev->next = temp->next;
-    }
-    else {
+    } else {
         *head = temp->next;
     }
 
     free(temp);
-    sprintf(output_msg, "Customer %d wiped %s", customer_id, "\0"); //returned for user/client
+    LOG_DBG("Customer %d wiped", customer_id);
 }

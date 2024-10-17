@@ -13,11 +13,13 @@ extern coap_resource_t res_scan;
 extern coap_resource_t res_tagquery;
 extern coap_resource_t res_product_update;
 
-PROCESS(server_coap_v1b, "server process with product query and customer scanning");
-AUTOSTART_PROCESSES(&server_coap_v1b);
+PROCESS(coap_server, "server process with product query and customer scanning");
+AUTOSTART_PROCESSES(&coap_server);
 
-PROCESS_THREAD(server_coap_v1b, ev, data)
+PROCESS_THREAD(coap_server, ev, data)
 {
+    static struct etimer timer;
+
 	PROCESS_BEGIN();
 
     initialize_tsch_schedule();
@@ -30,6 +32,15 @@ PROCESS_THREAD(server_coap_v1b, ev, data)
 	coap_activate_resource(&res_tagquery, QUERY_URI);
 	coap_activate_resource(&res_scan, SCAN_URI);
     coap_activate_resource(&res_product_update, "product/update");
+
+    etimer_set(&timer, 60 * CLOCK_SECOND);
+
+    while (1) {
+        PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+        etimer_reset(&timer);
+
+        res_product_update.trigger();
+    }
 
     PROCESS_END();
 }
