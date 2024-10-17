@@ -39,7 +39,7 @@ typedef struct {
 
 // Used by client to transmit scan requests
 typedef struct {
-    uint32_t customer_id;
+    customer_t customer_id;
     ean13_t product_id;
     uint16_t quantity;
     scan_type_t command;
