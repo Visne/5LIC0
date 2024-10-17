@@ -40,6 +40,9 @@ static req_product_data_t unpack_get_payload(coap_message_t* request) { //turns 
 }
 
 product_info_coap_msg_t db_query_read(product_info_coap_msg_t* db, char* product_id) { //searches initialized database for matching EAN13 product id and returns all info
+<<<<<<< HEAD
+>>>>>>> 316b1b2a1607290622eabc65a63de9aa246281df
+=======
 >>>>>>> 316b1b2a1607290622eabc65a63de9aa246281df
     char* pEnd1;
     char* pEnd2;
@@ -52,9 +55,12 @@ product_info_coap_msg_t db_query_read(product_info_coap_msg_t* db, char* product
     searched_product_id = strtoull(product_id, &pEnd1, 10); //convert string rerpesentation of request EAD code into numerical one
     unsigned long long i = 0; //index into database to be iterated with
 <<<<<<< HEAD
+<<<<<<< HEAD
     product_info_t db_product; //blank product information sheet that we'll send out
 
 =======
+=======
+>>>>>>> 316b1b2a1607290622eabc65a63de9aa246281df
     product_info_coap_msg_t db_product; //blank product information sheet that we'll send out
     
 >>>>>>> 316b1b2a1607290622eabc65a63de9aa246281df

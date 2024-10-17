@@ -67,8 +67,3 @@ typedef struct customer_tab_t {
     // For dynamic list of customers --> new customers are added here
     struct customer_tab_t *next;
 } customer_tab_t;
-=======
-    unsigned long customer_id;
-    unsigned long long product_id;
-} scan_data_coap_t;
->>>>>>> Stashed changes
