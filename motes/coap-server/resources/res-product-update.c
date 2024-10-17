@@ -9,7 +9,7 @@ static void res_get_handler(coap_message_t *request,
                             uint16_t preferred_size,
                             int32_t *offset)
 {
-    coap_set_payload(response, buffer, snprintf((char *) buffer, preferred_size, "hello!"));
+    coap_set_payload(response, buffer, snprintf((char *) buffer, preferred_size, "Product info update"));
 }
 
 static void notify() {

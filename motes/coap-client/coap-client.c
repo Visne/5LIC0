@@ -24,6 +24,8 @@ extern void set_product_id(uint64_t node_id, unsigned long product_id);
 extern void update_visualization(int clock);
 /*---------------------------------------------------------------------------*/
 
+#define TOGGLE_INTERVAL 10
+
 PROCESS(client, "Client process with customer scan");
 AUTOSTART_PROCESSES(&client);
 
@@ -62,8 +64,8 @@ void query_handler(coap_message_t *response) {
         return;
     }
 
-    product_info_t product = *(product_info_t*) response->payload;
-    LOG_INFO("Query: %s (ID: %lu, price: %hu cents)\n", product.product_description, product.product_id, product.product_price);
+    product_t product = *(product_t*) response->payload;
+    LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
 }
 
 void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag) {
@@ -177,12 +179,8 @@ PROCESS_THREAD(client, ev, data) {
             // Send
             COAP_BLOCKING_REQUEST(&server_ep, &request, scan_handler);
         } else {
-            // Create payload for a product info query for product id <node_id * 10000>
-            req_product_data_t product;
-            product.product_id = node_id;
-            snprintf(product.blankbuffer, sizeof(product.blankbuffer), "Query info"); //can be changed depending on what we need
-
-            request = coap_create_request(COAP_GET, QUERY_URI, COAP_TYPE_CON, &product, sizeof(product));
+            ean13_t product_id = node_id;
+            request = coap_create_request(COAP_GET, QUERY_URI, COAP_TYPE_CON, &product_id, sizeof(product_id));
 
             // Send :3
             COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
