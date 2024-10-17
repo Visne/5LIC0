@@ -2,9 +2,8 @@
 #include "coap-engine.h"
 #include "tsch.h"
 #include "sys/log.h"
-
-#include "../shared/custom-schedule.h"
-#include "../../shared/coap/coap-datatypes.h"
+#include "db.h"
+#include "custom-schedule.h"
 
 #define LOG_MODULE "Server"
 #define LOG_LEVEL LOG_LEVEL_DBG
@@ -31,7 +30,7 @@ PROCESS_THREAD(coap_server, ev, data)
 
 	coap_activate_resource(&res_tagquery, QUERY_URI);
 	coap_activate_resource(&res_scan, SCAN_URI);
-    coap_activate_resource(&res_product_update, "product/update");
+    coap_activate_resource(&res_product_update, UPDATE_URI);
 
     etimer_set(&timer, 60 * CLOCK_SECOND);
 

@@ -1,6 +1,6 @@
 #include "coap-engine.h"
+#include "db.h"
 #include <stdio.h>
-#include "../../shared/coap/coap-server-query.h"
 
 static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
@@ -15,7 +15,7 @@ static void res_get_handler(coap_message_t *request, coap_message_t *response, u
 {
     // Set up database
     static product_info_t database[DB_SIZE];
-    init_test_database(database, (unsigned long long int) DB_SIZE);
+    init_test_database(database, DB_SIZE);
 
     req_product_data_t request_data = *(req_product_data_t*) request->payload;
 
