@@ -7,7 +7,6 @@
 #define PRODUCT_PRICE_LEN 16
 #define PRODUCT_STOCKED_LEN 8
 
-#define TX_LEN_REQ (PRODUCT_ID_LEN + PRODUCT_DESCRIPT_LEN + PRODUCT_PRICE_LEN + PRODUCT_STOCKED_LEN + 12) //defines how much string space we need when buffering a transaction
 #define TX_LEN_POST (PRODUCT_ID_LEN + CUSTOMER_ID_LEN + ORDER_DB_COMMAND_LEN + ORDER_QUANTITY_LEN + 12) //defines how much buffer space we need to process text based scans
 
 #define CUSTOMER_ID_LEN 16
@@ -19,9 +18,6 @@
 
 #define TOGGLE_INTERVAL 10
 #define TRANSX_SEP ":" //seperator used for packing/unpacking data for TX/RX
-
-#define NODE_SCAN 1
-#define NODE_QUERY 2
 
 #define QUERY_URI "test/query"
 #define SCAN_URI "test/scan"
@@ -40,19 +36,19 @@ typedef struct { //datastructure used for transmitting product information reque
     char blankbuffer[PRODUCT_DESCRIPT_LEN]; //some data
 } req_product_data_t;
 
-
 typedef struct { //used by client to transmit scan requests
-    char customer_id[CUSTOMER_ID_LEN];
-    char product_id[PRODUCT_ID_LEN];
-    char quantity[ORDER_QUANTITY_LEN];
-    char command[ORDER_DB_COMMAND_LEN]; //used to indicate between 0=ADD (add customer to database or product to existing tab), 1=REM (remove N product from customer tab), 2=DELETE (wipe product entry from customer tab) or 3 =WIPE (remove customer entry and tab)
+    uint16_t customer_id;
+    uint16_t product_id;
+    uint16_t quantity;
+    // TODO: Turn into enum
+    // Used to indicate between 0=ADD (add customer to database or product to existing tab), 1=REM (remove N product
+    // from customer tab), 2=DELETE (wipe product entry from customer tab) or 3=WIPE (remove customer entry and tab)
+    char command;
 } scan_data_t;
-
-
 
 //customer purchase database structs
 typedef struct product_order_t {
-    char product_id[PRODUCT_ID_LEN];
+    uint16_t product_id;
     int quantity;
     struct product_order_t *next; // For dynamic list of products -> new products are added here
 } product_order_t;

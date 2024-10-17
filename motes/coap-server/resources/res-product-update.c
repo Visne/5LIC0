@@ -1,7 +1,9 @@
-#include <coap-blocking-api.h>
 #include "coap-engine.h"
 
-static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size,
+static void res_get_handler(coap_message_t *request,
+                            coap_message_t *response,
+                            uint8_t *buffer,
+                            uint16_t preferred_size,
                             int32_t *offset);
 
 RESOURCE(res_product_update,
@@ -11,7 +13,11 @@ RESOURCE(res_product_update,
          NULL,
          NULL);
 
-static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size,
-                            int32_t *offset) {
-
+static void res_get_handler(coap_message_t *request,
+                            coap_message_t *response,
+                            uint8_t *buffer,
+                            uint16_t preferred_size,
+                            int32_t *offset)
+{
+    // TODO
 }

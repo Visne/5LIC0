@@ -1,7 +1,6 @@
 #pragma once
 #include "../../shared/coap/coap-datatypes.h"
 
-
 /*Database-related methods*/
 
 // Find the location of the customer order sheet or create one
@@ -25,19 +24,18 @@ customer_tab_t* find_or_add_customer(customer_tab_t** head, int customer_id) {
 }
 
 // Find the location of the customer product order entry or create one
-product_order_t* find_or_add_product(product_order_t** product_list, char* product_id) { //NOTE: first arg is the head of the linke dlist containing product data FOR A PREDETERMINED CUSTOMER
-
+product_order_t* find_or_add_product(product_order_t** product_list, uint16_t product_id) { //NOTE: first arg is the head of the linke dlist containing product data FOR A PREDETERMINED CUSTOMER
     product_order_t* temp = *product_list;
 
     while (temp != NULL) { //lets look thru every product the customer has scanned
-        if (strcmp(temp->product_id, product_id) == 0) //if the customer has already ordered the product
+        if (temp->product_id == product_id) //if the customer has already ordered the product
             return temp;
         temp = temp->next;
     }
 
     // Create new product entry if not found
     product_order_t* new_product = (product_order_t*)malloc(sizeof(product_order_t));
-    strncpy(new_product->product_id, product_id, PRODUCT_ID_LEN);
+    new_product->product_id = product_id;
     new_product->quantity = 0;
     new_product->next = *product_list; // Add to head of list
     *product_list = new_product;
@@ -46,27 +44,21 @@ product_order_t* find_or_add_product(product_order_t** product_list, char* produ
 }
 
 void modify_product_quantity(product_order_t* product, int quantity, int command, char* output_msg) {
-    
     if (command == 0) {  // ADD 
         product->quantity += quantity;
-        sprintf(output_msg, "ADD.ID%s%sQTY%d\n", product->product_id, TRANSX_SEP, product->quantity);
-    }
-    else if (command == 1) {  // REMOVE
+        sprintf(output_msg, "ADD.ID%hu%sQTY%d", product->product_id, TRANSX_SEP, product->quantity);
+    } else if (command == 1) {  // REMOVE
         if (product->quantity > quantity) {
             product->quantity -= quantity;
 
-        }
-        else { //make sure we dont get negative amount of outstanding items in cart 
+        } else { //make sure we dont get negative amount of outstanding items in cart
             product->quantity = 0;
-
         }
-        sprintf(output_msg, "REM.ID%s%sQTY%d\n", product->product_id, TRANSX_SEP, product->quantity);
-    }
-    else if (command == 2) {  // DELETE product entry
+        sprintf(output_msg, "REM.ID%hu%sQTY%d", product->product_id, TRANSX_SEP, product->quantity);
+    } else if (command == 2) {  // DELETE product entry
         product->quantity = 0;
-        sprintf(output_msg, "REM.ID%s%sQTY%d\n", product->product_id, TRANSX_SEP, product->quantity);//returned for user/client
+        sprintf(output_msg, "REM.ID%hu%sQTY%d", product->product_id, TRANSX_SEP, product->quantity);//returned for user/client
     }
-
 }
 
 
@@ -100,35 +92,4 @@ void wipe_customer(customer_tab_t** head, int customer_id, char* output_msg) { /
 
     free(temp);
     sprintf(output_msg, "Customer %d wiped %s", customer_id, "\0"); //returned for user/client
-}
-
-/*Data transmisison related methods*/
-
-
-
-static scan_data_t unpack_scan_payload(coap_message_t* request) { //turns raw POST request data into usable scan_data_t payload
-    const uint8_t* chunk;
-    static scan_data_t decoded_struct; //raw struct to write to
-    /*
-    if (request == NULL) { //borrowed from client chunk handler, checks if request is somehow empty
-        //do something
-    return;
-    }*/
-
-    int len = coap_get_payload(request, &chunk); //returns pointer to request data to chink while writing length of request to len
-    char payloadbuffer[len + 10]; //building a buffer for text extraction
-    sprintf(payloadbuffer, "%.*s\n", len, (char*)chunk); //write payload (from pointer chunk of length len) to payloadbuffer -> now we have text containing product info 
-
-    char* pos; //pointer to seperator element
-    pos = strtok(payloadbuffer, TRANSX_SEP); //find first (currently only) seperator
-    //adjust based on return struct structure --> construct struct  
-    sprintf(decoded_struct.customer_id, "%s", pos);
-    pos = strtok(NULL, TRANSX_SEP);
-    sprintf(decoded_struct.product_id, "%s", pos);
-    pos = strtok(NULL, TRANSX_SEP);
-    sprintf(decoded_struct.quantity, "%s", pos);
-    pos = strtok(NULL, TRANSX_SEP);
-    sprintf(decoded_struct.command, "%s", pos);
-    //now we copy to output struct element
-    return decoded_struct; //return completed struct
 }

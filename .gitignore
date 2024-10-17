@@ -2,3 +2,4 @@ Makefile.path
 .idea/
 compile_commands.json
 motes/*/build
+**/*one.Identifier
