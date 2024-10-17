@@ -14,13 +14,13 @@ RESOURCE(res_tagquery,
 static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
     // Set up database
-    static product_info_t database[DB_SIZE];
+    static product_t database[DB_SIZE];
     init_test_database(database, DB_SIZE);
 
-    req_product_data_t request_data = *(req_product_data_t*) request->payload;
+    ean13_t product_id = (ean13_t) request->payload;
 
     // Returns the database entry for the product with this ID
-    product_info_t queried_product = db_query_read(database, request_data.product_id);
+    product_t queried_product = db_query_read(database, product_id);
 
     //int db_id = atoi(request_data.product_id); //for now/FIXME : turns the product ID into an index into database
     //stores database data into char fields for later use
