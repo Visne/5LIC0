@@ -10,9 +10,9 @@ void TagNode::UpdateNodeProduct(product_t product_msg)
 {
     log("Updating price from %d to %d", product_.price, product_msg.price);
     product_.price = product_msg.price;
-    std::string name(product_msg.description);
-    log("Updating name from %s to %s", product_.name, name);
-    product_.name = name;
+    std::string tag_name(product_msg.description);
+    log("Updating name from %s to %s", product_.name.c_str(), tag_name.c_str());
+    product_.name = tag_name;
 }
 
 scan_data_msg_t TagNode::generateScan()

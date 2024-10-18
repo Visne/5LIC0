@@ -17,10 +17,10 @@ static void res_get_handler(coap_message_t *request, coap_message_t *response, u
     static product_t database[DB_SIZE];
     init_test_database(database, DB_SIZE);
 
-    ean13_t product_id = (ean13_t) request->payload;
-
+    product_update_request update_request = *(product_update_request*) request->payload;
+    printf("Query for product %ld\n", update_request.product_id);
     // Returns the database entry for the product with this ID
-    product_t queried_product = db_query_read(database, product_id);
+    product_t queried_product = db_query_read(database, update_request.product_id);
 
     //int db_id = atoi(request_data.product_id); //for now/FIXME : turns the product ID into an index into database
     //stores database data into char fields for later use

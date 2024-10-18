@@ -31,17 +31,6 @@ PROCESS(client, "Client process with customer scan");
 AUTOSTART_PROCESSES(&client);
 
 static coap_observee_t *obs;
-typedef struct
-{
-    uint64_t calling_node;
-    scan_data_t scan;
-} scan_submission;
-typedef struct
-{
-    uint64_t calling_node;
-    ean13_t product_id;
-} product_update_request;
-
 #define MAX_SCANS 50
 typedef struct
 {
@@ -58,6 +47,8 @@ typedef struct
 static scan_submissions node_scan_submissions;
 static product_update_requests node_product_update_requests;
 static scan_submission current_submission;
+product_update_request current_request;
+product_t current_request_response;
 
 void scan_handler(coap_message_t *response)
 {
@@ -75,9 +66,9 @@ void query_handler(coap_message_t *response)
         return;
     }
 
-    //product_t product = *(product_t *)response->payload;
-    //LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
-    LOG_INFO("Query!\n");
+    product_t product = *(product_t *)response->payload;
+    LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
+    current_request_response = product;
 }
 
 void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag)
@@ -133,7 +124,7 @@ PROCESS_THREAD(client, ev, data)
     static struct etimer timer;
     coap_endpoint_t server_ep;
     uip_ipaddr_t root;
-    coap_message_t request;
+    static coap_message_t request;
 
     PROCESS_BEGIN();
 
@@ -191,21 +182,22 @@ PROCESS_THREAD(client, ev, data)
 
         for (int i = 0; i < node_product_update_requests.len; i++)
         {
-            product_update_request current_request = (product_update_request) { 
+            current_request = (product_update_request) { 
                 node_product_update_requests.requests[i].calling_node,
                 node_product_update_requests.requests[i].product_id
             };
-            ean13_t product_id = node_product_update_requests.requests[i].product_id;
-            printf("Request by node %ld for prod. %ld\n", node_product_update_requests.requests[i].calling_node, product_id);
-            request = coap_create_request(COAP_POST, QUERY_URI, COAP_TYPE_CON, &product_id, sizeof(product_id));
+            printf("Request by node %ld for prod. %ld\n", node_product_update_requests.requests[i].calling_node, current_request.product_id);
+            request = coap_create_request(COAP_GET, QUERY_URI, COAP_TYPE_CON, &(current_request), sizeof(current_request));
             COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
-            printf("Product info for product %ld\n", product_id);
-            send_can_message(PRODUCT_UPDATE, current_request.calling_node, (CAN_data_t){.product_info = (product_t) {
-                .id = product_id,
+            printf("Product info for product %ld\n", current_request.product_id);
+            product_t product = {
+                .id = current_request.product_id,
                 .price = 12,
                 .is_stocked = true,
-                .description = "Product"
-            }});
+                .description = "Product\0"
+            };
+            printf("%s\n", product.description);
+            send_can_message(PRODUCT_UPDATE, current_request.calling_node, (CAN_data_t){ .product_info = current_request_response });
         }
         node_product_update_requests.len = 0;
 
