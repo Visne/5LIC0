@@ -75,8 +75,9 @@ void query_handler(coap_message_t *response)
         return;
     }
 
-    product_t product = *(product_t *)response->payload;
-    LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
+    //product_t product = *(product_t *)response->payload;
+    //LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
+    LOG_INFO("Query!\n");
 }
 
 void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag)
@@ -196,8 +197,8 @@ PROCESS_THREAD(client, ev, data)
             };
             ean13_t product_id = node_product_update_requests.requests[i].product_id;
             printf("Request by node %ld for prod. %ld\n", node_product_update_requests.requests[i].calling_node, product_id);
-            // request = coap_create_request(COAP_POST, QUERY_URI, COAP_TYPE_CON, &product_id, sizeof(product_id));
-            // COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
+            request = coap_create_request(COAP_POST, QUERY_URI, COAP_TYPE_CON, &product_id, sizeof(product_id));
+            COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
             printf("Product info for product %ld\n", product_id);
             send_can_message(PRODUCT_UPDATE, current_request.calling_node, (CAN_data_t){.product_info = (product_t) {
                 .id = product_id,
