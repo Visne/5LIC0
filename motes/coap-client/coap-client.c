@@ -35,18 +35,15 @@ void query_handler(coap_message_t *response) {
     LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
 }
 
-void notification_callback(coap_observee_t *subject, void *notification, coap_notification_flag_t flag) {
-    int len = 0;
-    const uint8_t *payload = NULL;
-
+void notification_callback(coap_observee_t *subject, void* notification, coap_notification_flag_t flag) {
     LOG_INFO("Notification on URI: %s\n", subject->url);
-    if (notification) {
-        len = coap_get_payload(notification, &payload);
-    }
+
+    product_t product = *(product_t*) ((coap_message_t*) notification)->payload;
+
     switch (flag) {
         case NOTIFICATION_OK:
         case OBSERVE_OK:
-            LOG_INFO("OK: %*s\n", len, (char *) payload);
+            LOG_INFO("Product with ID %lu updated: %s (price: %hu, stocked: %hu)\n", product.id, product.description, product.price, product.is_stocked);
             break;
         case OBSERVE_NOT_SUPPORTED:
         case ERROR_RESPONSE_CODE:
