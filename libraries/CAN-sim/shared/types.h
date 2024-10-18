@@ -11,6 +11,7 @@
 #define MIN_SCAN_PERIOD 8000 // ms between scans
 #define MAX_SCAN_PERIOD 24000 // ms between scans
 #define CLUSTER_HEAD_ELECTION_PERIOD 5
+#define UNDEFINED_CLUSTER_HEAD 0 
 
 
 #define CLUSTER_VIS_DIRECTORY "/home/quinten/contiki-ng/5LIC0/vis/"
@@ -20,14 +21,7 @@
 #define CAN_UNIT_STEP 0.0078125 // representation of time in seconds to send 1 CAN message, currently set to 1/CLOCK_SECOND
 
 #define UNDEFINED_PRODUCT_ID 0 // Product ID 0 is forbidden
-
-typedef struct product_info_msg {
-    /// Price of the product in cents
-    ean13_t product_id;
-    unsigned short price;
-    char* product_name;
-    unsigned short product_name_len;
-} product_info_msg_t;
+#define UNDEFINED_NODE_ID 0
 
 typedef struct scan_data_msg {
     customer_t customer_id;
@@ -47,7 +41,7 @@ typedef enum {
 
 /* Union abstracting possible contents of data field of CANFD message */
 typedef union CAN_data {
-    product_info_msg_t product_info;
+    product_t product_info;
     bool empty; // Used to indicate empty message (ACK)
 } CAN_data_t;
 

@@ -56,7 +56,7 @@ public:
     )
     {
         id_ = id;
-        product_ = { 0, 0, "UNDEFINED" };
+        product_ = { UNDEFINED_PRODUCT_ID, 0, "UNDEFINED" };
         scan_cb_ = scanCb;
         product_update_cb_ = productUpdateCb;
     }
@@ -72,7 +72,7 @@ public:
     void RequestProductInfo(ean13_t product_id);
 
     /* Replace local product information with given values */
-    void UpdateNodeProduct(product_info_msg_t product_info);
+    void UpdateNodeProduct(product_t product_info);
 
     /* Generate a suitable (partly random) scan message to be submitted on the net */
     scan_data_msg_t generateScan();
@@ -88,7 +88,7 @@ public:
 
     void sendProductScan();
     void receiveScanAck();
-    bool receiveProductUpdate(product_info_msg_t data);
+    bool receiveProductUpdate(product_t data);
     void sendProductUpdateReq();
     void sendProductUpdateAck();
     bool wantsToApplyForClusterHead();

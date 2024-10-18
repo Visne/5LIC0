@@ -74,12 +74,12 @@ void product_update_callback(ean13_t product_id, uint64_t calling_node) {
     printf("NODE#%ld displaying product %ld requests updated information.\n", calling_node, product_id);
     unsigned short price = 2 * product_id + 1;
     CAN_data_t msg_data;
-    msg_data.product_info = (product_info_msg_t) {
-        product_id,
-        price,
-        "",
-        PRODUCT_DESCRIPT_LEN
-    };
+    // msg_data.product_info = (product_info_msg_t) {
+    //     product_id,
+    //     price,
+    //     "",
+    //     PRODUCT_DESCRIPT_LEN
+    // };
     snprintf(msg_data.product_info.product_name, PRODUCT_DESCRIPT_LEN, "Product_%ld", product_id);
     printf("<-- THIS WOULD BE A NETWORK CALL TO FETCH DATA -->\n");
     send_can_message(PRODUCT_UPDATE, calling_node, msg_data);

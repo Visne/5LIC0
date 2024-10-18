@@ -72,7 +72,7 @@ public:
 
     // HELPER FUNCTIONS
     /* Sets a tag node's new product id (as if employee is setting it) and fires corresponding request for product info on the network */
-    void setProductId(uint64_t node_id, ean13_t product_id);
+    void setProductId(uint64_t node_id, unsigned long product_id);
 
     CANmessage_t NewProductScanMsg(uint64_t node_id)
     {

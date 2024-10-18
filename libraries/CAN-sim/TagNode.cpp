@@ -6,11 +6,11 @@ void TagNode::SetNodeProduct(ean13_t product_id)
     product_.id = product_id;
 }
 
-void TagNode::UpdateNodeProduct(product_info_msg_t product_msg)
+void TagNode::UpdateNodeProduct(product_t product_msg)
 {
     log("Updating price from %d to %d", product_.price, product_msg.price);
     product_.price = product_msg.price;
-    std::string name(product_msg.product_name);
+    std::string name(product_msg.description);
     log("Updating name from %s to %s", product_.name, name);
     product_.name = name;
 }
@@ -61,11 +61,9 @@ void TagNode::receiveScanAck() {
     awaiting_ACK = false;
 }
 
-bool TagNode::receiveProductUpdate(product_info_msg_t data) {
-    if (product_.id == data.product_id) {
-        char name[PRODUCT_DESCRIPT_LEN];
-        memcpy(name, data.product_name, data.product_name_len);
-        log("New product info: { %ld, %d, %s }", data.product_id, data.price, name);
+bool TagNode::receiveProductUpdate(product_t data) {
+    if (product_.id == data.id) {
+        log("Received product update for prod %d", data.id);
         UpdateNodeProduct(data);
         return true;
     }

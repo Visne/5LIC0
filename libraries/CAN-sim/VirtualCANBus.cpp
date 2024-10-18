@@ -38,7 +38,7 @@ float VirtualCANBus::simulateCANBus()
         {
             bus_queue_.pop_front();
             // Double check if target node exists, if not, skip
-            if (nodes_.find(next.msg.to) != nodes_.end()) {
+            if ((nodes_.find(next.msg.to) != nodes_.end())) {
                 
                  // Execute CAN command presently sent on the bus
                 ProcessMessage(next.msg);
@@ -50,6 +50,10 @@ float VirtualCANBus::simulateCANBus()
                     msg.time_until -= CAN_UNIT_STEP;
                 }
                 time_to_sleep = CAN_UNIT_STEP;
+            } else {
+                #ifdef DEBUG_BUS
+                log("Node not found", 0);
+                #endif
             };
         }
     }

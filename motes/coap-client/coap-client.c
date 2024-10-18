@@ -141,9 +141,10 @@ PROCESS_THREAD(client, ev, data)
     printf("CAN started: %d\n", can_started);
 
     etimer_set(&timer, TOGGLE_INTERVAL * node_id * CLOCK_SECOND);
+
     float temp = simulate_can_bus();
     temp = temp;
-    
+
     while (1)
     {
         PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
@@ -151,6 +152,7 @@ PROCESS_THREAD(client, ev, data)
 
         if (!NETSTACK_ROUTING.node_is_reachable() || !NETSTACK_ROUTING.get_root_ipaddr(&root))
         {
+            // CAN bus is not simulated here since we'd otherwise throw away messages or let queue grow unbounded
             printf("Node not reachable, skipping iterations\n");
             etimer_set(&timer, CLOCK_SECOND);
             obs = NULL;
@@ -180,7 +182,6 @@ PROCESS_THREAD(client, ev, data)
                     node_scan_submissions.scans[i].scan.command}};
             printf("Scan by node %ld for prod. %ld, cust. %d\n", current_submission.calling_node, current_submission.scan.product_id, current_submission.scan.customer_id);
             request = coap_create_request(COAP_POST, SCAN_URI, COAP_TYPE_CON, &current_submission.scan, sizeof(current_submission.scan));
-            request = request;
             COAP_BLOCKING_REQUEST(&server_ep, &request, scan_handler);
             printf("ACK to node %ld\n", current_submission.calling_node);
             send_can_message(SCAN_ACK, current_submission.calling_node, (CAN_data_t){.empty = true});
@@ -189,16 +190,25 @@ PROCESS_THREAD(client, ev, data)
 
         for (int i = 0; i < node_product_update_requests.len; i++)
         {
+            product_update_request current_request = (product_update_request) { 
+                node_product_update_requests.requests[i].calling_node,
+                node_product_update_requests.requests[i].product_id
+            };
             ean13_t product_id = node_product_update_requests.requests[i].product_id;
             printf("Request by node %ld for prod. %ld\n", node_product_update_requests.requests[i].calling_node, product_id);
-            request = coap_create_request(COAP_POST, QUERY_URI, COAP_TYPE_CON, &product_id, sizeof(product_id));
-            request = request;
-            // COAP_BLOCKING_REQUEST(&server_ep, &request, scan_handler);
+            // request = coap_create_request(COAP_POST, QUERY_URI, COAP_TYPE_CON, &product_id, sizeof(product_id));
+            // COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
+            printf("Product info for product %ld\n", product_id);
+            send_can_message(PRODUCT_UPDATE, current_request.calling_node, (CAN_data_t){.product_info = (product_t) {
+                .id = product_id,
+                .price = 12,
+                .is_stocked = true,
+                .description = "Product"
+            }});
         }
         node_product_update_requests.len = 0;
 
-        float time_to_sleep = simulate_can_bus();
-        etimer_set(&timer, time_to_sleep * CLOCK_SECOND);
+        etimer_set(&timer, simulate_can_bus() * CLOCK_SECOND);
     }
 
     PROCESS_END();
