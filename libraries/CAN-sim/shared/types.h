@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "../../../motes/shared/datatypes.h"
 
-#define DEBUG_NODE //Uncomment to enable debug mode for nodes
+// #define DEBUG_NODE //Uncomment to enable debug mode for nodes
 // #define DEBUG_BUS  //Uncomment to enable debug mode for bus
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100
@@ -14,7 +14,7 @@
 #define UNDEFINED_CLUSTER_HEAD 0 
 
 
-#define CLUSTER_VIS_DIRECTORY "/home/quinten/contiki-ng/5LIC0/vis/"
+#define CLUSTER_VIS_DIRECTORY "/home/quint/contiki-ng/5LIC0/vis/"
 
 // 29 bit ID + 64 byte payload = 541 bits per message. 1Mbit/s -> 1.000.000 / 541 =~ 1848 msgs per second
 #define CAN_FREQ 1848

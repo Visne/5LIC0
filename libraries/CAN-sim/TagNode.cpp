@@ -63,7 +63,6 @@ void TagNode::receiveScanAck() {
 
 bool TagNode::receiveProductUpdate(product_t data) {
     if (product_.id == data.id) {
-        log("Received product update for prod %d", data.id);
         UpdateNodeProduct(data);
         return true;
     }

@@ -258,25 +258,30 @@ void VirtualCANBus::updateVisualization(int clock)  {
         #define MSEP        "  |  "
         #define LSEP        "|  "
         #define RSEP        "  |"
-        int columnwidth = 16;
+        int columnwidth = 12;
+        int desclength = 48;
         std::string hor_line;
+        std::string hor_line_desc; // Special line for product name as it is long
         for (int i = 0; i < columnwidth; i++) {
             hor_line += "-";
         }
+        for (int i = 0; i < desclength; i ++) {
+            hor_line_desc += "-";
+        }
         //                      NODE ID                  PROD ID                  PRICE                    NAME                     AWAITING ACK
-        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
-        myfile_ << LSEP << pad_to_length("NODE ID", columnwidth) << MSEP << pad_to_length("PROD ID", columnwidth) << MSEP << pad_to_length("PRICE", columnwidth) << MSEP << pad_to_length("NAME", columnwidth) << MSEP << pad_to_length("SCAN STATUS", columnwidth) << RSEP"\n";
-        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line_desc << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP << pad_to_length("NODE ID", columnwidth) << MSEP << pad_to_length("PROD ID", columnwidth) << MSEP << pad_to_length("PRICE", columnwidth) << MSEP << pad_to_length("NAME", desclength) << MSEP << pad_to_length("SCAN STATUS", columnwidth) << RSEP"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line_desc << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
         for (std::pair<uint64_t, TagNode *> node_: nodes_) {
             TagNode *node = node_.second;
             myfile_ << LSEP 
             << pad_to_length(node->GetNodeId(), columnwidth) << MSEP 
             << pad_to_length(node->GetProductId(), columnwidth) << MSEP
             << pad_to_length(node->GetProductPrice(), columnwidth) << MSEP
-            << pad_to_length(node->GetProductName(), columnwidth) << MSEP
+            << pad_to_length(node->GetProductName(), desclength) << MSEP
             << pad_to_length(node->GetAwaitingACK()? "AWAITING ACK" : "IDLE", columnwidth) << RSEP"\n";
         }
-        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line_desc << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
         myfile_ << "\n\n";
         myfile_ << "Clock: " << clock;
         myfile_.close();
