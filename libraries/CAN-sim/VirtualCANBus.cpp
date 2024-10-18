@@ -136,7 +136,7 @@ bool VirtualCANBus::removeNode(const uint64_t id)
     return false;
 }
 
-void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
+void VirtualCANBus::setProductId(uint64_t node_id, ean13_t product_id)
 {
     if (nodes_.find(node_id) != nodes_.end())
     {

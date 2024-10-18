@@ -47,7 +47,7 @@ extern uint8_t add_node(uint64_t id, void (*scan_callback) (scan_data_msg_t, uin
 extern uint8_t remove_node(uint64_t  id);
 extern void send_can_message(CAN_command command, uint64_t target_node, CAN_data_t payload);
 extern float simulate_can_bus();
-extern void set_product_id(uint64_t node_id, unsigned long product_id);
+extern void set_product_id(uint64_t node_id, ean13_t product_id);
 extern void update_visualization(int clock);
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node process");
@@ -70,7 +70,7 @@ void scan_callback(scan_data_msg_t data, uint64_t calling_node) {
     send_can_message(SCAN_ACK, calling_node, msg_data);
 }
 
-void product_update_callback(unsigned long product_id, uint64_t calling_node) {
+void product_update_callback(ean13_t product_id, uint64_t calling_node) {
     printf("NODE#%ld displaying product %ld requests updated information.\n", calling_node, product_id);
     unsigned short price = 2 * product_id + 1;
     CAN_data_t msg_data;

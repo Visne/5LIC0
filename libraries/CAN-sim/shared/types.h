@@ -2,8 +2,9 @@
 #define TYPES
 
 #include <stdint.h>
+#include "../../../motes/shared/datatypes.h"
 
-// #define DEBUG_NODE //Uncomment to enable debug mode for nodes
+#define DEBUG_NODE //Uncomment to enable debug mode for nodes
 // #define DEBUG_BUS  //Uncomment to enable debug mode for bus
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100
@@ -22,15 +23,15 @@
 
 typedef struct product_info_msg {
     /// Price of the product in cents
-    unsigned long product_id;
+    ean13_t product_id;
     unsigned short price;
     char* product_name;
     unsigned short product_name_len;
 } product_info_msg_t;
 
 typedef struct scan_data_msg {
-    unsigned long customer_id;
-    unsigned long long product_id;
+    customer_t customer_id;
+    ean13_t product_id;
 } scan_data_msg_t;
 
 /* Enum abstracting CANIDs, priorities are assigned top (highest) to bottom (lowest)*/

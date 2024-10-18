@@ -18,7 +18,7 @@ private:
 
     // Struct used to store current product data
     typedef struct tag_product_info {
-        unsigned long id;
+        ean13_t id;
         unsigned short price;
         std::string name;
     } tag_product_info_t;
@@ -66,10 +66,10 @@ public:
     }
 
     /* Assign product ID to node, used to fetch and update product information */
-    void SetNodeProduct(unsigned long product_id);
+    void SetNodeProduct(ean13_t product_id);
 
     /* Send a message on the bus to have local product information updated */
-    void RequestProductInfo(unsigned long product_id);
+    void RequestProductInfo(ean13_t product_id);
 
     /* Replace local product information with given values */
     void UpdateNodeProduct(product_info_msg_t product_info);
@@ -80,7 +80,7 @@ public:
     /* Return time in s at which next tag scan will take place, populates fields of msg to have correct info on message*/
     float getNextSendTime();
 
-    unsigned long GetProductId() { return product_.id; };
+    ean13_t GetProductId() { return product_.id; };
     uint64_t GetNodeId() { return id_; };
     unsigned long GetProductPrice() { return product_.price; };
     std::string GetProductName() { return product_.name; };

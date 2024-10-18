@@ -1,6 +1,6 @@
 #include "TagNode.hpp"
 
-void TagNode::SetNodeProduct(unsigned long product_id)
+void TagNode::SetNodeProduct(ean13_t product_id)
 {
     log("Updating product ID from %lld to %lld", product_.id, product_id);
     product_.id = product_id;
@@ -20,7 +20,7 @@ scan_data_msg_t TagNode::generateScan()
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> random_customer_id(MIN_CUST_ID, MAX_CUST_ID);
-    unsigned long customer_id = random_customer_id(rng);
+    customer_t customer_id = random_customer_id(rng);
     #ifdef DEBUG_NODE
     log("Generated scan: { cust: %ld, prod: %lld }", customer_id, product_.id);
     #endif
