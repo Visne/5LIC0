@@ -3,7 +3,8 @@
 
 #include <map>
 #include <string.h>
-#include "types.h"
+#include "shared/types.h"
+#include "../../motes/shared/datatypes.h"
 #include <random>
 #include <memory>
 #include <stdexcept>
@@ -14,8 +15,16 @@
 class TagNode
 {
 private:
+
+    // Struct used to store current product data
+    typedef struct tag_product_info {
+        ean13_t id;
+        unsigned short price;
+        std::string name;
+    } tag_product_info_t;
+
     uint64_t id_;            // MAC address
-    product_info_t product_; // Product currently being displayed
+    tag_product_info_t product_; // Product currently being displayed
     uint64_t cluser_head_id_ = 0;// Logical CAN address of cluster head (send commands to this node)
     bool awaiting_ACK = false;
 
@@ -47,7 +56,7 @@ public:
     )
     {
         id_ = id;
-        product_ = { 0, 0, "UNDEFINED" };
+        product_ = { UNDEFINED_PRODUCT_ID, 0, "UNDEFINED" };
         scan_cb_ = scanCb;
         product_update_cb_ = productUpdateCb;
     }
@@ -57,13 +66,13 @@ public:
     }
 
     /* Assign product ID to node, used to fetch and update product information */
-    void SetNodeProduct(unsigned long product_id);
+    void SetNodeProduct(ean13_t product_id);
 
     /* Send a message on the bus to have local product information updated */
-    void RequestProductInfo(unsigned long product_id);
+    void RequestProductInfo(ean13_t product_id);
 
     /* Replace local product information with given values */
-    void UpdateNodeProduct(product_info_msg_t product_info);
+    void UpdateNodeProduct(product_t product_info);
 
     /* Generate a suitable (partly random) scan message to be submitted on the net */
     scan_data_msg_t generateScan();
@@ -71,7 +80,7 @@ public:
     /* Return time in s at which next tag scan will take place, populates fields of msg to have correct info on message*/
     float getNextSendTime();
 
-    unsigned long GetProductId() { return product_.id; };
+    ean13_t GetProductId() { return product_.id; };
     uint64_t GetNodeId() { return id_; };
     unsigned long GetProductPrice() { return product_.price; };
     std::string GetProductName() { return product_.name; };
@@ -79,7 +88,7 @@ public:
 
     void sendProductScan();
     void receiveScanAck();
-    bool receiveProductUpdate(product_info_msg_t data);
+    bool receiveProductUpdate(product_t data);
     void sendProductUpdateReq();
     void sendProductUpdateAck();
     bool wantsToApplyForClusterHead();

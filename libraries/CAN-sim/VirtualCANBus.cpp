@@ -38,7 +38,7 @@ float VirtualCANBus::simulateCANBus()
         {
             bus_queue_.pop_front();
             // Double check if target node exists, if not, skip
-            if (nodes_.find(next.msg.to) != nodes_.end()) {
+            if ((nodes_.find(next.msg.to) != nodes_.end())) {
                 
                  // Execute CAN command presently sent on the bus
                 ProcessMessage(next.msg);
@@ -50,6 +50,10 @@ float VirtualCANBus::simulateCANBus()
                     msg.time_until -= CAN_UNIT_STEP;
                 }
                 time_to_sleep = CAN_UNIT_STEP;
+            } else {
+                #ifdef DEBUG_BUS
+                log("Node not found", 0);
+                #endif
             };
         }
     }
@@ -57,7 +61,7 @@ float VirtualCANBus::simulateCANBus()
 }
 
 /* Loops over current pending CAN messages queue, inserts new message where appropriate*/
-void VirtualCANBus::enqueueCANMessage(float time_until, CANFDmessage_t msg)
+void VirtualCANBus::enqueueCANMessage(float time_until, CANmessage_t msg)
 {
     #ifdef DEBUG_BUS
     log("Enqueueing message { from %d to %d, command: %d } at t=%f", msg.from, msg.to, msg.command, time_until);
@@ -136,7 +140,7 @@ bool VirtualCANBus::removeNode(const uint64_t id)
     return false;
 }
 
-void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
+void VirtualCANBus::setProductId(uint64_t node_id, ean13_t product_id)
 {
     if (nodes_.find(node_id) != nodes_.end())
     {
@@ -148,7 +152,7 @@ void VirtualCANBus::setProductId(uint64_t node_id, unsigned long product_id)
 
 // Messages on the bus meant to invoke actions are not explicitly listened to by TagNode objects or the cluster head (cooja mote).
 // Rather, callbacks to particular cooja mote functions are provided to TagNodes on creation, and invoked when the corresponding CAN message is up next on the bus.
-void VirtualCANBus::ProcessMessage(CANFDmessage_t msg)
+void VirtualCANBus::ProcessMessage(CANmessage_t msg)
 {
     switch (msg.command){
         // Represents a message initiating election of a new cluster head
@@ -254,25 +258,30 @@ void VirtualCANBus::updateVisualization(int clock)  {
         #define MSEP        "  |  "
         #define LSEP        "|  "
         #define RSEP        "  |"
-        int columnwidth = 16;
+        int columnwidth = 12;
+        int desclength = 48;
         std::string hor_line;
+        std::string hor_line_desc; // Special line for product name as it is long
         for (int i = 0; i < columnwidth; i++) {
             hor_line += "-";
         }
+        for (int i = 0; i < desclength; i ++) {
+            hor_line_desc += "-";
+        }
         //                      NODE ID                  PROD ID                  PRICE                    NAME                     AWAITING ACK
-        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
-        myfile_ << LSEP << pad_to_length("NODE ID", columnwidth) << MSEP << pad_to_length("PROD ID", columnwidth) << MSEP << pad_to_length("PRICE", columnwidth) << MSEP << pad_to_length("NAME", columnwidth) << MSEP << pad_to_length("SCAN STATUS", columnwidth) << RSEP"\n";
-        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line_desc << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP << pad_to_length("NODE ID", columnwidth) << MSEP << pad_to_length("PROD ID", columnwidth) << MSEP << pad_to_length("PRICE", columnwidth) << MSEP << pad_to_length("NAME", desclength) << MSEP << pad_to_length("SCAN STATUS", columnwidth) << RSEP"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line_desc << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
         for (std::pair<uint64_t, TagNode *> node_: nodes_) {
             TagNode *node = node_.second;
             myfile_ << LSEP 
             << pad_to_length(node->GetNodeId(), columnwidth) << MSEP 
             << pad_to_length(node->GetProductId(), columnwidth) << MSEP
             << pad_to_length(node->GetProductPrice(), columnwidth) << MSEP
-            << pad_to_length(node->GetProductName(), columnwidth) << MSEP
+            << pad_to_length(node->GetProductName(), desclength) << MSEP
             << pad_to_length(node->GetAwaitingACK()? "AWAITING ACK" : "IDLE", columnwidth) << RSEP"\n";
         }
-        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
+        myfile_ << LSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line << MSEP_EDGE << hor_line_desc << MSEP_EDGE << hor_line << RSEP_EDGE"\n";
         myfile_ << "\n\n";
         myfile_ << "Clock: " << clock;
         myfile_.close();

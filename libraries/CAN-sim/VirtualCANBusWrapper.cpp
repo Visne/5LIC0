@@ -10,7 +10,7 @@ extern "C" {
 
 static VirtualCANBus bus;
 
-extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t)) {
+extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t), uint64_t node_id) {
     for (int i = 0; i < (int) nr_of_nodes; i++) {
         int id = i+1;
         if (bus.addNode(id, scanCallBack, priceUpdateCallBack)) {
@@ -19,7 +19,7 @@ extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_
             return 0;
         }
     }
-    bus.openVisualizationFile(0);
+    bus.openVisualizationFile(node_id);
     bus.updateVisualization(0);
     bus.enqueueCANMessage(2, bus.NewClusterHeadElection());
     return 1;
@@ -35,21 +35,21 @@ extern "C" float simulate_can_bus() {
     return result;
 }
 
-extern "C" void send_can_message(CAN_command command, uint64_t target_node, CANFD_data_t payload) {
+extern "C" void send_can_message(CAN_command command, uint64_t target_node, CAN_data_t payload) {
     switch (command) {
         case SCAN_ACK: {
-            CANFDmessage_t msg = {
+            CANmessage_t msg = {
                 SCAN_ACK,
                 target_node,
                 bus.cluster_head_id,
-                nullptr
+                true
             };
             bus.enqueueCANMessage(0.0, msg);
             // bus.simulateCANBus();
             break;
         }
         case PRODUCT_UPDATE: {
-            CANFDmessage_t msg = {
+            CANmessage_t msg = {
                 PRODUCT_UPDATE,
                 target_node,
                 bus.cluster_head_id,

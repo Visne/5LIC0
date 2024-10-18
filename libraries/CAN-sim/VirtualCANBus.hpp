@@ -13,7 +13,7 @@ private:
     typedef struct scheduled_bus_activity
     {
         float time_until; // Time until this message should be sent in seconds
-        CANFDmessage_t msg;
+        CANmessage_t msg;
     } scheduled_bus_activity_t;
 
     std::map<uint64_t, TagNode *> nodes_;
@@ -61,9 +61,9 @@ public:
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
     float simulateCANBus();
     /* Schedules a CAN message to be sent in time_until s*/
-    void enqueueCANMessage(float time_until, CANFDmessage_t msg);
+    void enqueueCANMessage(float time_until, CANmessage_t msg);
     /* Method used to invoke appropriate actions at corresponding tag nodes when given message is up next on the bus */
-    void ProcessMessage(CANFDmessage_t msg);
+    void ProcessMessage(CANmessage_t msg);
     
     // VISUALIZATION FUNCTIONS
     void openVisualizationFile(int shelf_id);
@@ -74,44 +74,44 @@ public:
     /* Sets a tag node's new product id (as if employee is setting it) and fires corresponding request for product info on the network */
     void setProductId(uint64_t node_id, unsigned long product_id);
 
-    CANFDmessage_t NewProductScanMsg(uint64_t node_id)
+    CANmessage_t NewProductScanMsg(uint64_t node_id)
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
-        CANFDmessage_t scan_msg = {
+        CANmessage_t scan_msg = {
             PRODUCT_SCAN,
             cluster_head_id,
             node_id,
             payload};
         return scan_msg;
     };
-    CANFDmessage_t NewProductUpdateACK(uint64_t node_id)
+    CANmessage_t NewProductUpdateACK(uint64_t node_id)
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
-        CANFDmessage_t scan_msg = {
+        CANmessage_t scan_msg = {
             PRODUCT_UPDATE_ACK,
             node_id,
             cluster_head_id,
             payload};
         return scan_msg;
     };
-    CANFDmessage_t NewProductUpdateRequestMsg(uint64_t node_id)
+    CANmessage_t NewProductUpdateRequestMsg(uint64_t node_id)
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
-        CANFDmessage_t request_msg = {
+        CANmessage_t request_msg = {
             REQUEST_PRODUCT_UPDATE,
             node_id, // Must be to calling node, not cluster head, as callback is made with info from calling node
             node_id,
             payload};
         return request_msg;
     };
-    CANFDmessage_t NewClusterHeadElection()
+    CANmessage_t NewClusterHeadElection()
     {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
-        CANFDmessage_t request_msg = {
+        CANmessage_t request_msg = {
             CLUSTER_HEAD_ELECTION,
             cluster_head_id, 
             cluster_head_id,
@@ -119,11 +119,11 @@ public:
         };
         return request_msg;
     };
-    CANFDmessage_t NewClusterHeadVote(uint64_t node_id)
+    CANmessage_t NewClusterHeadVote(uint64_t node_id)
         {
-        CANFD_data_t payload;
+        CAN_data_t payload;
         payload.empty = true;
-        CANFDmessage_t request_msg = {
+        CANmessage_t request_msg = {
             CLUSTER_HEAD_VOTE,
             cluster_head_id,
             node_id,

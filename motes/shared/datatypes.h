@@ -45,6 +45,17 @@ typedef struct {
     scan_type_t command;
 } scan_data_t;
 
+typedef struct {
+    uint64_t calling_node;
+    scan_data_t scan;
+} scan_submission;
+
+typedef struct {
+    uint64_t calling_node;
+    ean13_t product_id;
+} product_update_request;
+
+
 // Customer purchase database structs
 typedef struct product_order_t {
     ean13_t product_id;

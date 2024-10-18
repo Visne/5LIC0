@@ -11,13 +11,7 @@
 |  8                 |  8                 |  0                 |  UNDEFINED         |  IDLE              |
 |  9                 |  9                 |  0                 |  UNDEFINED         |  IDLE              |
 |  10                |  10                |  0                 |  UNDEFINED         |  IDLE              |
-|  11                |  11                |  0                 |  UNDEFINED         |  IDLE              |
-|  12                |  12                |  0                 |  UNDEFINED         |  IDLE              |
-|  13                |  13                |  0                 |  UNDEFINED         |  IDLE              |
-|  14                |  14                |  0                 |  UNDEFINED         |  IDLE              |
-|  15                |  15                |  0                 |  UNDEFINED         |  IDLE              |
-|  16                |  16                |  0                 |  UNDEFINED         |  IDLE              |
 +--------------------+--------------------+--------------------+--------------------+--------------------+
 
 
-Clock: 10855
+Clock: 40001
