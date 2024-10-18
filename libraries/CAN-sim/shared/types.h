@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "../../../motes/shared/datatypes.h"
 
-#define DEBUG_NODE //Uncomment to enable debug mode for nodes
+// #define DEBUG_NODE //Uncomment to enable debug mode for nodes
 // #define DEBUG_BUS  //Uncomment to enable debug mode for bus
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100

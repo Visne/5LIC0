@@ -21,9 +21,7 @@ scan_data_msg_t TagNode::generateScan()
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> random_customer_id(MIN_CUST_ID, MAX_CUST_ID);
     customer_t customer_id = random_customer_id(rng);
-    #ifdef DEBUG_NODE
     log("Generated scan: { cust: %ld, prod: %lld }", customer_id, product_.id);
-    #endif
     return {
         customer_id, // Random customer
         product_.id
@@ -59,7 +57,7 @@ void TagNode::sendProductScan() {
 
 // Handles receiving the ACK for a product scan on the node's end
 void TagNode::receiveScanAck() {
-    log("ACK received!", 0);
+    log("Scan ACK received!", 0);
     awaiting_ACK = false;
 }
 
@@ -75,7 +73,6 @@ bool TagNode::receiveProductUpdate(product_info_msg_t data) {
 }
 
 void TagNode::sendProductUpdateReq() {
-    // log("Generated scan", 0);
     // Call the callback function
     (*product_update_cb_)(product_.id, id_);
 }
