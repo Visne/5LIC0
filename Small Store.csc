@@ -334,7 +334,7 @@
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
-      <filter>^ID:10</filter>
+      <filter></filter>
       <formatted_time />
       <coloring />
     </plugin_config>
