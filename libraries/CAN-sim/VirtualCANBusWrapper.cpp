@@ -25,6 +25,7 @@ extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_
     if (node_id % 10 == 1) {
         bus.openVisualizationFile(node_id);
     }
+    bus.openLoggingFile(node_id);
     
     bus.updateVisualization(0);
     bus.enqueueCANMessage(2, bus.NewClusterHeadElection());
@@ -36,8 +37,8 @@ extern "C" uint8_t remove_node(uint64_t id) {
     return bus.removeNode(id) ? 1 : 0;
 }
 
-extern "C" float simulate_can_bus() {
-    float result = bus.simulateCANBus();
+extern "C" float simulate_can_bus(int clockt_time) {
+    float result = bus.simulateCANBus(clockt_time);
     return result;
 }
 

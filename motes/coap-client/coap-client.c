@@ -20,7 +20,7 @@ extern uint8_t init_can_bus(uint64_t id, void (*scan_callback)(scan_data_msg_t, 
 extern uint8_t add_node(uint64_t id, void (*scan_callback)(scan_data_msg_t, uint64_t), void (*product_update_callback)(unsigned long, uint64_t));
 extern uint8_t remove_node(uint64_t id);
 extern void send_can_message(CAN_command command, uint64_t target_node, CAN_data_t payload);
-extern float simulate_can_bus();
+extern float simulate_can_bus(int clock_time);
 extern void set_product_id(uint64_t node_id, ean13_t product_id);
 extern void update_visualization(int clock);
 /*---------------------------------------------------------------------------*/
@@ -131,7 +131,7 @@ PROCESS_THREAD(client, ev, data)
 
     etimer_set(&timer, TOGGLE_INTERVAL * node_id * CLOCK_SECOND);
 
-    float temp = simulate_can_bus();
+    float temp = simulate_can_bus(clock_time());
     temp = temp;
 
     while (1)
@@ -186,7 +186,7 @@ PROCESS_THREAD(client, ev, data)
             COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
         }
         node_product_update_requests.len = 0;
-        float time_to_wait = simulate_can_bus();
+        float time_to_wait = simulate_can_bus(clock_time());
         // printf("Simulated CAN bus, next msg in %f seconds\n" , time_to_wait);
         etimer_set(&timer, time_to_wait * CLOCK_SECOND);
     }
