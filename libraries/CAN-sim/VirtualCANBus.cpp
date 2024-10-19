@@ -1,7 +1,7 @@
 #include "VirtualCANBus.hpp"
 #include <cstring>
 
-float VirtualCANBus::simulateCANBus()
+float VirtualCANBus::simulateCANBus(int clock_time)
 {
     float time_to_sleep = -1;
     #ifdef DEBUG_BUS
@@ -41,7 +41,7 @@ float VirtualCANBus::simulateCANBus()
             if ((nodes_.find(next.msg.to) != nodes_.end())) {
                 
                  // Execute CAN command presently sent on the bus
-                ProcessMessage(next.msg);
+                ProcessMessage(next.msg, clock_time);
                 
             
                 // Progress time that has passed for each frame by 1 step
@@ -121,8 +121,11 @@ bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, 
         nodes_[id] = new_node;
 
         // Set it to start generating scans
-        int t_next = new_node->getNextSendTime();
-        enqueueCANMessage(t_next, NewProductScanMsg(id));        
+        // Offset = avg time between scans per
+        
+        float t_next = id % NR_OF_NODES_PER_CLUSTER;
+        enqueueCANMessage(t_next, NewProductScanMsg(id));
+        log("Node will send scan in %f seconds", t_next);   
         return true;
     }
     return false;
@@ -147,12 +150,14 @@ void VirtualCANBus::setProductId(uint64_t node_id, ean13_t product_id)
         nodes_[node_id]->SetNodeProduct(product_id);
         // Generate new product update request
         enqueueCANMessage(0.0, NewProductUpdateRequestMsg(node_id));
+    } else {
+        log("Node not found", 0);
     }
 }
 
 // Messages on the bus meant to invoke actions are not explicitly listened to by TagNode objects or the cluster head (cooja mote).
 // Rather, callbacks to particular cooja mote functions are provided to TagNodes on creation, and invoked when the corresponding CAN message is up next on the bus.
-void VirtualCANBus::ProcessMessage(CANmessage_t msg)
+void VirtualCANBus::ProcessMessage(CANmessage_t msg, int clock_time)
 {
     switch (msg.command){
         // Represents a message initiating election of a new cluster head
@@ -184,7 +189,7 @@ void VirtualCANBus::ProcessMessage(CANmessage_t msg)
                 TagNode *node = nodes_[msg.from];
                 // Invoke the callback to simulate the data that would have been submitted to cluster head instead, such that it may be forwarded to the wireless network.
                 node->sendProductScan();
-
+                log_to_data(node->GetNodeId(), PRODUCT_SCAN, clock_time);
                 // Queue new Product Scan event for this tag node.
                 enqueueCANMessage(node->getNextSendTime(), NewProductScanMsg(msg.from));
             }
@@ -194,6 +199,7 @@ void VirtualCANBus::ProcessMessage(CANmessage_t msg)
         case SCAN_ACK: {
             if (nodes_.find(msg.to) != nodes_.end())
             {
+                log_to_data(msg.to, SCAN_ACK, clock_time);
                 nodes_[msg.to]->receiveScanAck();
             }
         }
@@ -202,8 +208,10 @@ void VirtualCANBus::ProcessMessage(CANmessage_t msg)
         case PRODUCT_UPDATE:{
             for (std::pair<uint64_t, TagNode *> node_: nodes_) {
                 TagNode *node = node_.second;
+                // log("Looking at node %ld with product %ld to find match for submitted product %ld", node->GetNodeId(), node->GetProductId(), msg.data.product_info.id);
                 bool ack = node->receiveProductUpdate(msg.data.product_info);
                 if (ack) {
+                    log_to_data(node->GetNodeId(), PRODUCT_UPDATE, clock_time);
                     enqueueCANMessage(0.0, NewProductUpdateACK(msg.to));
                 }
             }
@@ -216,6 +224,7 @@ void VirtualCANBus::ProcessMessage(CANmessage_t msg)
                 TagNode *node = nodes_[msg.to];
                 // Invoke the callback to simulate the product info request that would have been submitted to cluster head normally, such that it may be forwarded to the wireless network.
                 node->sendProductUpdateReq();
+                log_to_data(msg.to, REQUEST_PRODUCT_UPDATE, clock_time);
             }
         }
         // Acknowledgement message coming from tag node that it succesfully updated its product info
@@ -245,6 +254,12 @@ void VirtualCANBus::openVisualizationFile(int shelf_id) {
             log("Unable to open visualization file!", 0);
         }
     }
+}
+
+void VirtualCANBus::openLoggingFile(int shelf_id) {
+    data_file_ = CLUSTER_VIS_DIRECTORY "shelf_" + std::to_string(shelf_id) + "logging.txt";
+    datafile.open(data_file_, std::ios_base::app); // append instead of overwrite
+    datafile << "NODE_ID;Event;Time\n"; 
 }
 
 void VirtualCANBus::updateVisualization(int clock)  {

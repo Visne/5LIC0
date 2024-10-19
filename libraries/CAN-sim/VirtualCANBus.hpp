@@ -22,6 +22,10 @@ private:
 
     std::ofstream myfile_;  // Create an output file stream object
     std::string vis_file_;
+    
+    std::ofstream datafile;
+    std::string data_file_;
+
     bool visualizing_ = false;
 
     // Basic logging functionality as std::format did not work (C++11)
@@ -59,14 +63,15 @@ public:
     /* Remove tag node from the bus */
     bool removeNode(const uint64_t id);
     /* Resolves scheduled actions simulating the behavior of a CAN bus. Returns time in s until next this method should be called again */
-    float simulateCANBus();
+    float simulateCANBus(int clockt_time);
     /* Schedules a CAN message to be sent in time_until s*/
     void enqueueCANMessage(float time_until, CANmessage_t msg);
     /* Method used to invoke appropriate actions at corresponding tag nodes when given message is up next on the bus */
-    void ProcessMessage(CANmessage_t msg);
+    void ProcessMessage(CANmessage_t msg, int clock_time);
     
     // VISUALIZATION FUNCTIONS
     void openVisualizationFile(int shelf_id);
+    void openLoggingFile(int shelf_id);
     void updateVisualization(int clock);
 
 
@@ -145,6 +150,12 @@ public:
         std::string str_input = std::to_string(input);  // Convert int to string
         return pad_to_length(str_input, n);  // Reuse string padding function
     };
+
+    void log_to_data(int node_id, CAN_command event, int clock_time) {
+        datafile.open(data_file_, std::ios_base::app); // append instead of overwrite
+        datafile << node_id <<";" << event << ";" << clock_time << "\n"; 
+        datafile.close();
+    }
 };
 
 #endif // VIRTUALCANBUS_HPP

@@ -9,10 +9,10 @@
 #include "datatypes.h"
 #include "utility.h"
 #include "custom-schedule.h"
+#include "sim-tuning.h"
 
 #define LOG_MODULE "Client"
 #define LOG_LEVEL LOG_LEVEL_DBG
-#define NR_OF_CAN_NODES 10
 
 /*---------------------------------------------------------------------------*/
 /* Defined in C++ code */
@@ -20,7 +20,7 @@ extern uint8_t init_can_bus(uint64_t id, void (*scan_callback)(scan_data_msg_t, 
 extern uint8_t add_node(uint64_t id, void (*scan_callback)(scan_data_msg_t, uint64_t), void (*product_update_callback)(unsigned long, uint64_t));
 extern uint8_t remove_node(uint64_t id);
 extern void send_can_message(CAN_command command, uint64_t target_node, CAN_data_t payload);
-extern float simulate_can_bus();
+extern float simulate_can_bus(int clock_time);
 extern void set_product_id(uint64_t node_id, ean13_t product_id);
 extern void update_visualization(int clock);
 /*---------------------------------------------------------------------------*/
@@ -31,13 +31,13 @@ PROCESS(client, "Client process with customer scan");
 AUTOSTART_PROCESSES(&client);
 
 static coap_observee_t *obs;
-#define MAX_SCANS 50
+#define MAX_SCANS 2 * NR_OF_NODES_PER_CLUSTER // Just to be sure
 typedef struct
 {
     scan_submission scans[MAX_SCANS];
     int len;
 } scan_submissions;
-#define MAX_REQUESTS 50
+#define MAX_REQUESTS 2 * NR_OF_NODES_PER_CLUSTER // Just to be sure
 typedef struct
 {
     product_update_request requests[MAX_REQUESTS];
@@ -56,6 +56,7 @@ void scan_handler(coap_message_t *response)
     {
         LOG_ERR("Scan request timed out\n");
     }
+    send_can_message(SCAN_ACK, current_submission.calling_node, (CAN_data_t){.empty = true});
 }
 
 void query_handler(coap_message_t *response)
@@ -69,6 +70,7 @@ void query_handler(coap_message_t *response)
     product_t product = *(product_t *)response->payload;
     LOG_INFO("Query ID %lu: %s, price: %hu cents\n", product.id, product.description, product.price);
     current_request_response = product;
+    send_can_message(PRODUCT_UPDATE, current_request.calling_node, (CAN_data_t){ .product_info = current_request_response });
 }
 
 void notification_callback(coap_observee_t *subject, void* notification, coap_notification_flag_t flag) {
@@ -87,6 +89,7 @@ void notification_callback(coap_observee_t *subject, void* notification, coap_no
             // TODO: More descriptive log message
             LOG_ERR("Something went wrong: %d\n", flag);
             obs = NULL;
+            
             break;
     }
 }
@@ -123,12 +126,12 @@ PROCESS_THREAD(client, ev, data)
     PROCESS_BEGIN();
 
     initialize_tsch_schedule();
-    int can_started = init_can_bus(NR_OF_CAN_NODES, &scan_callback, &product_update_callback, node_id);
+    int can_started = init_can_bus(NR_OF_NODES_PER_CLUSTER, &scan_callback, &product_update_callback, node_id);
     printf("CAN started: %d\n", can_started);
 
     etimer_set(&timer, TOGGLE_INTERVAL * node_id * CLOCK_SECOND);
 
-    float temp = simulate_can_bus();
+    float temp = simulate_can_bus(clock_time());
     temp = temp;
 
     while (1)
@@ -170,7 +173,6 @@ PROCESS_THREAD(client, ev, data)
             };
             request = coap_create_request(COAP_POST, SCAN_URI, COAP_TYPE_CON, &current_submission.scan, sizeof(current_submission.scan));
             COAP_BLOCKING_REQUEST(&server_ep, &request, scan_handler);
-            send_can_message(SCAN_ACK, current_submission.calling_node, (CAN_data_t){.empty = true});
         }
         node_scan_submissions.len = 0;
 
@@ -182,11 +184,11 @@ PROCESS_THREAD(client, ev, data)
             };
             request = coap_create_request(COAP_GET, QUERY_URI, COAP_TYPE_CON, &(current_request), sizeof(current_request));
             COAP_BLOCKING_REQUEST(&server_ep, &request, query_handler);
-            send_can_message(PRODUCT_UPDATE, current_request.calling_node, (CAN_data_t){ .product_info = current_request_response });
         }
         node_product_update_requests.len = 0;
-
-        etimer_set(&timer, simulate_can_bus() * CLOCK_SECOND);
+        float time_to_wait = simulate_can_bus(clock_time());
+        // printf("Simulated CAN bus, next msg in %f seconds\n" , time_to_wait);
+        etimer_set(&timer, time_to_wait * CLOCK_SECOND);
     }
 
     PROCESS_END();

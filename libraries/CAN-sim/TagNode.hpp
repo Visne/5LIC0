@@ -5,6 +5,7 @@
 #include <string.h>
 #include "shared/types.h"
 #include "../../motes/shared/datatypes.h"
+#include "../../motes/shared/sim-tuning.h"
 #include <random>
 #include <memory>
 #include <stdexcept>
@@ -27,6 +28,7 @@ private:
     tag_product_info_t product_; // Product currently being displayed
     uint64_t cluser_head_id_ = 0;// Logical CAN address of cluster head (send commands to this node)
     bool awaiting_ACK = false;
+    float seconds_between_scans_per_node = ((float) (NR_OF_CLUSTERS * NR_OF_NODES_PER_CLUSTER)) / DESIRED_GLOBAL_SCAN_FREQ;
 
     // Function callback pointers for commands
     void (*scan_cb_)(scan_data_msg_t, uint64_t);
