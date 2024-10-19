@@ -76,11 +76,20 @@ void query_handler(coap_message_t *response)
 void notification_callback(coap_observee_t *subject, void* notification, coap_notification_flag_t flag) {
     LOG_INFO("Notification on URI: %s\n", subject->url);
 
-    product_t product = *(product_t*) ((coap_message_t*) notification)->payload;
+    coap_message_t* message;
 
     switch (flag) {
         case NOTIFICATION_OK:
         case OBSERVE_OK:
+            message = ((coap_message_t*) notification);
+
+            if (message == NULL || message->payload == NULL) {
+                LOG_ERR("Product update message or payload was null!\n");
+                LOG_ERR("Flag was %d\n", flag);
+                return;
+            }
+
+            product_t product = *(product_t*) message->payload;
             LOG_INFO("Product with ID %lu updated: %s (price: %hu, stocked: %hu)\n", product.id, product.description, product.price, product.is_stocked);
             break;
         case OBSERVE_NOT_SUPPORTED:
@@ -89,7 +98,6 @@ void notification_callback(coap_observee_t *subject, void* notification, coap_no
             // TODO: More descriptive log message
             LOG_ERR("Something went wrong: %d\n", flag);
             obs = NULL;
-            
             break;
     }
 }

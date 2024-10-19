@@ -17,6 +17,11 @@ static void res_get_handler(coap_message_t *request,
         init_test_database(database, DB_SIZE);
     }
 
+    if (request == NULL || request->payload == NULL) {
+        printf("Tag query request or payload was null!\n");
+        return;
+    }
+
     // Returns the database entry for the product with this ID
     product_update_request update_request = *(product_update_request*) request->payload;
     product_t product = db_query_read(database, update_request.product_id);
