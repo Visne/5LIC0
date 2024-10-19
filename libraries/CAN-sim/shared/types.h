@@ -10,7 +10,7 @@
 #define MAX_CUST_ID 100
 // #define MIN_SCAN_PERIOD 8000 // ms between scans
 // #define MAX_SCAN_PERIOD 24000 // ms between scans
-#define CLUSTER_HEAD_ELECTION_PERIOD 50
+#define CLUSTER_HEAD_ELECTION_PERIOD 5
 #define UNDEFINED_CLUSTER_HEAD 0 
 
 

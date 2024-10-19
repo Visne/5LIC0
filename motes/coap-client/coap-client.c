@@ -187,7 +187,7 @@ PROCESS_THREAD(client, ev, data)
         }
         node_product_update_requests.len = 0;
         float time_to_wait = simulate_can_bus();
-        printf("Simulated CAN bus, next msg in %f seconds\n" , time_to_wait);
+        // printf("Simulated CAN bus, next msg in %f seconds\n" , time_to_wait);
         etimer_set(&timer, time_to_wait * CLOCK_SECOND);
     }
 
