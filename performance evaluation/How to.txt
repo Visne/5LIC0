@@ -1,0 +1,25 @@
+### PERFORMANCE EVALUATION SCRIPT FOR 5LICO WIRELESS PRODUCT TAG PROJECT ###
+
+Language: Python 3
+Ext. dependencies: Numpy, Matplolib, pyshark, deepcopy
+Author: Emma Boulesteix
+Date: 18/10/24
+
+This script uses COAP-containing .pcap radio logs obtained via cooja sim to compute the following performance characteristics for the test run:
+- PDR
+- End to End Latency
+- Throughput
+
+### HOW TO ###
+
+1. run $python .\read_logs.py <radiolog.pcap> <node_count> <hist_bin_count>
+2. wait :3
+3. data is provided in terminal and as graphical plot
+
+args:
+
+- <radiolog.pcap>: directory of pcap radio log. should contain ".pcap" extension in argument
+- <node_count>: number of shelves in system. Purely for display purposes
+- <hist_bin_count>: number of bins to use for displayed histograms. feel free to tune. 
+
+
