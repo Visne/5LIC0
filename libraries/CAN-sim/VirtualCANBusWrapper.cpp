@@ -2,6 +2,7 @@
 #define VIRTUALCANBUSWRAPPER
 
 #include "VirtualCANBus.hpp"
+#include "../../motes/shared/db.h"
 extern "C" {
     #include <stdint.h>
     #include <cstring>
@@ -12,14 +13,19 @@ static VirtualCANBus bus;
 
 extern "C" uint8_t init_can_bus(uint64_t nr_of_nodes, void (*scanCallBack)(scan_data_msg_t, uint64_t), void (*priceUpdateCallBack)(unsigned long, uint64_t), uint64_t node_id) {
     for (int i = 0; i < (int) nr_of_nodes; i++) {
-        int id = i+1;
+        int id = node_id * NR_OF_NODES_PER_CLUSTER + i;
         if (bus.addNode(id, scanCallBack, priceUpdateCallBack)) {
-            bus.setProductId(id, id);
+            int product_id = rand() % DB_SIZE;
+            if ((id % NR_OF_NODES_PER_CLUSTER) == 7) { product_id = 42; };
+            bus.setProductId(id, product_id);
         } else {
             return 0;
         }
     }
-    bus.openVisualizationFile(node_id);
+    if (node_id % 10 == 1) {
+        bus.openVisualizationFile(node_id);
+    }
+    
     bus.updateVisualization(0);
     bus.enqueueCANMessage(2, bus.NewClusterHeadElection());
     return 1;

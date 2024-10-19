@@ -121,8 +121,11 @@ bool VirtualCANBus::addNode(const uint64_t id, void (*scan_cb)(scan_data_msg_t, 
         nodes_[id] = new_node;
 
         // Set it to start generating scans
-        int t_next = new_node->getNextSendTime();
-        enqueueCANMessage(t_next, NewProductScanMsg(id));        
+        // Offset = avg time between scans per
+        
+        float t_next = id % NR_OF_NODES_PER_CLUSTER;
+        enqueueCANMessage(t_next, NewProductScanMsg(id));
+        log("Node will send scan in %f seconds", t_next);   
         return true;
     }
     return false;
@@ -147,6 +150,8 @@ void VirtualCANBus::setProductId(uint64_t node_id, ean13_t product_id)
         nodes_[node_id]->SetNodeProduct(product_id);
         // Generate new product update request
         enqueueCANMessage(0.0, NewProductUpdateRequestMsg(node_id));
+    } else {
+        log("Node not found", 0);
     }
 }
 
@@ -202,6 +207,7 @@ void VirtualCANBus::ProcessMessage(CANmessage_t msg)
         case PRODUCT_UPDATE:{
             for (std::pair<uint64_t, TagNode *> node_: nodes_) {
                 TagNode *node = node_.second;
+                // log("Looking at node %ld with product %ld to find match for submitted product %ld", node->GetNodeId(), node->GetProductId(), msg.data.product_info.id);
                 bool ack = node->receiveProductUpdate(msg.data.product_info);
                 if (ack) {
                     enqueueCANMessage(0.0, NewProductUpdateACK(msg.to));

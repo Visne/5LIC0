@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include "../../../motes/shared/datatypes.h"
 
-// #define DEBUG_NODE //Uncomment to enable debug mode for nodes
+#define DEBUG_NODE //Uncomment to enable debug mode for nodes
 // #define DEBUG_BUS  //Uncomment to enable debug mode for bus
 #define MIN_CUST_ID 0
 #define MAX_CUST_ID 100
-#define MIN_SCAN_PERIOD 8000 // ms between scans
-#define MAX_SCAN_PERIOD 24000 // ms between scans
-#define CLUSTER_HEAD_ELECTION_PERIOD 5
+// #define MIN_SCAN_PERIOD 8000 // ms between scans
+// #define MAX_SCAN_PERIOD 24000 // ms between scans
+#define CLUSTER_HEAD_ELECTION_PERIOD 50
 #define UNDEFINED_CLUSTER_HEAD 0 
 
 

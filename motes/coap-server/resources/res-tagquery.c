@@ -1,5 +1,6 @@
 #include "coap-engine.h"
 #include "db.h"
+#include "datatypes.h"
 #include <stdio.h>
 
 static product_t database[DB_SIZE];
@@ -17,7 +18,8 @@ static void res_get_handler(coap_message_t *request,
     }
 
     // Returns the database entry for the product with this ID
-    product_t product = db_query_read(database, *request->payload);
+    product_update_request update_request = *(product_update_request*) request->payload;
+    product_t product = db_query_read(database, update_request.product_id);
     coap_set_payload(response, &product, sizeof(product));
 }
 

@@ -33,9 +33,10 @@ float TagNode::getNextSendTime()
 {   
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(MIN_SCAN_PERIOD, MAX_SCAN_PERIOD);
+    int avg_wait_time = seconds_between_scans_per_node * 1000; // Time to wait in ms to reach desired frequency
+    std::uniform_int_distribution<std::mt19937::result_type> dist(avg_wait_time - SCAN_FREQ_VARIANCE, avg_wait_time + SCAN_FREQ_VARIANCE);
 
-    float t_next = dist(rng) / 1000.0; // Used as ms
+    float t_next = dist(rng) / 1000.0; // Set time back to seconds
     // Not randomized for now, just send 2s to get 8 messages/s on average
     
     #ifdef DEBUG_NODE
