@@ -338,11 +338,11 @@ def mainloop(filename, node_count, bincount):
     
     print("\n### LATENCY ###")
     
-    print(f"All services: \n- average: {np.around(all_latency['average'], 3)}s \n- median: {np.around(all_latency['median'], 3)}s \n- std deviation: {np.around(all_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_all_2s*100, 2)}%")
+    print(f"All services: \n- average: {np.around(all_latency['average'], 3)}s \n- median: {np.around(all_latency['median'], 4)}s \n- std deviation: {np.around(all_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_all_2s*100, 2)}%")
     
-    print(f"Query: \n- average: {np.around(query_latency['average'], 3)}s \n- median: {np.around(query_latency['median'], 3)}s \n- std deviation: {np.around(query_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_query_2s*100, 2)}%")
-    print(f"Scan: \n- average: {np.around(scan_latency['average'], 3)}s \n- median: {np.around(scan_latency['median'], 3)}s \n- std deviation: {np.around(scan_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_scan_2s*100, 2)}%")
-    print(f"Update services: \n- average: {np.around(update_latency['average'], 3)}s \n- median: {np.around(update_latency['median'], 3)}s \n- std deviation: {np.around(update_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_update_2s*100, 2)}%")
+    print(f"Query: \n- average: {np.around(query_latency['average'], 3)}s \n- median: {np.around(query_latency['median'], 4)}s \n- std deviation: {np.around(query_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_query_2s*100, 2)}%")
+    print(f"Scan: \n- average: {np.around(scan_latency['average'], 3)}s \n- median: {np.around(scan_latency['median'], 4)}s \n- std deviation: {np.around(scan_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_scan_2s*100, 2)}%")
+    print(f"Update services: \n- average: {np.around(update_latency['average'], 3)}s \n- median: {np.around(update_latency['median'], 4)}s \n- std deviation: {np.around(update_latency['std_dev'], 3)}s \n- share of packets with latency <2s: {np.around(frac_update_2s*100, 2)}%")
     
     #display latency graphs
     fig, axs = plt.subplots(2, 2)
@@ -352,26 +352,26 @@ def mainloop(filename, node_count, bincount):
     #adjust bin count as needed for visualization, weights normalize data so we get percentages
 
     axs[0, 0].hist(latency_measurements_all, bins = bincount,  weights= np.ones(len(latency_measurements_all))*100 / len(latency_measurements_all))
-    axs[0, 0].set_title(f"Latency of all transactions (median: {np.around(all_latency['median'], 2)}s, <2s: {np.around(frac_all_2s*100,1)}% )")
+    axs[0, 0].set_title(f"Latency of all transactions (median: {np.around(all_latency['median'], 3)}s, <2s: {np.around(frac_all_2s*100,1)}% )")
     axs[0, 0].set_xlabel("e2e latency (s)")
     axs[0, 0].set_ylabel("% of packets ")
-    axs[0, 0].set_xlim([0, 5])
+    axs[0, 0].set_xlim([0, 6])
 
-    axs[0, 1].hist(latency_measurements_scan, bins = int(bincount/4), color= 'green',weights= np.ones(len(latency_measurements_scan))*100 / len(latency_measurements_scan))
-    axs[0, 1].set_title(f"Latency of scan transactions (median: {np.around(scan_latency['median'], 2)}s, <2s: {np.around(frac_scan_2s*100,1)}%)")
-    axs[0, 1].set_xlim([0, 5])
+    axs[0, 1].hist(latency_measurements_scan, bins = int(bincount/2), color= 'green',weights= np.ones(len(latency_measurements_scan))*100 / len(latency_measurements_scan))
+    axs[0, 1].set_title(f"Latency of scan transactions (median: {np.around(scan_latency['median'], 3)}s, <2s: {np.around(frac_scan_2s*100,1)}%)")
+    axs[0, 1].set_xlim([0, 6])
     axs[0, 1].set_xlabel("e2e latency (s)")
     axs[0, 1].set_ylabel("% of packets ")
 
     axs[1, 0].hist(latency_measurements_query, bins = int(bincount/2),  color='orange', weights= np.ones(len(latency_measurements_query))*100 / len(latency_measurements_query))
-    axs[1, 0].set_title(f"Latency of query transactions (median: {np.around(query_latency['median'], 2)}s , <2s: {np.around(frac_query_2s*100,1)}%)")
-    axs[1, 0].set_xlim([0, 5])
+    axs[1, 0].set_title(f"Latency of query transactions (median: {np.around(query_latency['median'], 3)}s , <2s: {np.around(frac_query_2s*100,1)}%)")
+    axs[1, 0].set_xlim([0, 6])
     axs[1, 0].set_xlabel("e2e latency (s)")
     axs[1, 0].set_ylabel("% of packets ")
 
-    axs[1, 1].hist(latency_measurements_update, bins= int(bincount/4), color='red', weights= np.ones(len(latency_measurements_update))*100 / len(latency_measurements_update))
-    axs[1, 1].set_title(f"Latency of update transactions (median: {np.around(update_latency['median'], 2)}s, <2s: {np.around(frac_update_2s*100,1)}%)")
-    axs[1, 1].set_xlim([0, 5])
+    axs[1, 1].hist(latency_measurements_update, bins= int(bincount/20), color='red', weights= np.ones(len(latency_measurements_update))*100 / len(latency_measurements_update))
+    axs[1, 1].set_title(f"Latency of update transactions (median: {np.around(update_latency['median'], 3)}s, <2s: {np.around(frac_update_2s*100,1)}%)")
+    axs[1, 1].set_xlim([0, 6])
     axs[1, 1].set_xlabel("e2e latency (s)")
     axs[1, 1].set_ylabel("% of packets ")
 

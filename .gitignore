@@ -3,3 +3,4 @@ Makefile.path
 compile_commands.json
 motes/*/build
 **/*one.Identifier
+/performance evaluation/logs
