@@ -18,7 +18,7 @@
       org.contikios.cooja.contikimote.ContikiMoteType
       <description>Client</description>
       <source>[CONFIG_DIR]/motes/coap-client/coap-client.c</source>
-      <commands>$(MAKE) -j$(CPUS) coap-client.cooja TARGET=cooja</commands>
+      <commands>$(MAKE) -j$(CPUS) TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
       <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>
