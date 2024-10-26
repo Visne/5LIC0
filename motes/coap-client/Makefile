@@ -6,7 +6,10 @@ PLATFORMS_EXCLUDE = sky z1
 MODULES += os/net/app-layer/coap
 MODULES_REL += ./resources ../shared
 
-all: $(CONTIKI_PROJECT)
+all: dir $(CONTIKI_PROJECT)
+
+dir:
+	@mkdir -p build/libraries/CAN-sim
 
 include ../../Makefile.path
 
