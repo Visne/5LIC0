@@ -17,3 +17,5 @@ These instructions will install Contiki-NG to `~/contiki-ng` on a commit that is
 1. File > Open simulation > Browse...
 1. Select `Small Store.csc` from this repository
 1. Press Start/Pause to start the simulation
+1. The behaviour of virtualized CAN nodes may be modified under `motes/shared/sim-tuning.h` *(requires Reload of simulation to take effect)*
+1. If you wish to make use of the price tag visualization, please update `CLUSTER_VIS_DIRECTORY` in `libraries/CAN-sim/shard/types.h` to your desired location, text representations of every 10th mote's CAN nodes will be generated here. Write privilege at the logging location is required for this. *(requires Reload of simulation to take effect)*
